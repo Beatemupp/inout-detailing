@@ -5,7 +5,7 @@ const BIZ = {
   area: ["Knightdale", "Wake Forest", "Youngsville", "Raleigh", "Cary", "Apex", "Brier Creek", "Creedmoor"],
   services: ["Washing", "Waxing", "Buffing", "Vacuuming", "Pressure Washing", "Shampooing"],
   site: "https://inoutdetailing.example", // placeholder until Sprint 3 picks a real address
-  payBase: "https://beatemupp.github.io/inout-detailing/",   // customer booking / pay links the owner sends = the public website (went public 2026-11-03)
+  payBase: "https://inandoutnc.com/",   // customer booking / pay links the owner sends = the public website (own domain since 2026-11-03)
   cardsLive: false,   // true once the owner's own Stripe account is connected (see "pops"). Until then the public site shows cash / Cash App only. // customer booking / pay links the owner texts (the shared website for now)
 };
 
