@@ -115,3 +115,14 @@ const SUPA = { url: "https://suagllhlnwubdetsmiqz.supabase.co", key: "sb_publish
 
 // Card payments show on the public site only when cardsLive is true. The private preview link + this PC keep the practice cards for testing.
 const CARDS_ON = BIZ.cardsLive === true || (typeof location !== "undefined" && /^(127\.0\.0\.1|localhost|inout-preview\.tail235854\.ts\.net|studio-pc\.tail235854\.ts\.net)$/.test(location.hostname));
+
+// "Remember me" on the logins (DroGo 2026-11-03): on = stay logged in on this device (localStorage), off = logged out when the browser closes (sessionStorage).
+// The password-reset helper key always goes to localStorage so the emailed link still works from a new tab.
+const REMEMBER_KEY = "inout.rememberMe";
+const authStore = {
+  remember() { try { return localStorage.getItem(REMEMBER_KEY) !== "0"; } catch (e) { return true; } },
+  setRemember(on) { try { localStorage.setItem(REMEMBER_KEY, on ? "1" : "0"); } catch (e) {} },
+  getItem(k) { try { const v = sessionStorage.getItem(k); return v !== null ? v : localStorage.getItem(k); } catch (e) { return null; } },
+  setItem(k, v) { try { const keep = /code-verifier/.test(k) || authStore.remember(); (keep ? localStorage : sessionStorage).setItem(k, v); (keep ? sessionStorage : localStorage).removeItem(k); } catch (e) {} },
+  removeItem(k) { try { localStorage.removeItem(k); sessionStorage.removeItem(k); } catch (e) {} },
+};

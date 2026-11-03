@@ -785,6 +785,7 @@
     <h3 id="acctTitle">Log in</h3><p class="small mut" style="margin:0">Welcome back.</p>
     <label class="f" for="lEmail">Email</label><input id="lEmail" type="email" autocomplete="email" required>
     <label class="f" for="lPass">Password</label><input id="lPass" type="password" autocomplete="current-password" required>
+    <label class="chk"><input type="checkbox" id="lRemember" checked> Remember me on this device</label>
     <button class="btn" type="submit">Log in</button>
     <p class="msg" role="alert"></p>
     <div class="links"><a href="#" onclick="acctView('vForgot');return false">Forgot password?</a><a href="#" onclick="acctView('vSignup');return false">New here? Create an account</a></div>
@@ -1250,7 +1251,7 @@ function payPage(id) {
 route();
 
 // ===== customer accounts (Sprint 1, 2026-11-02): log in, create account, forgot password, log out =====
-const supa = (window.supabase && typeof SUPA !== "undefined") ? window.supabase.createClient(SUPA.url, SUPA.key, { auth: { flowType: "pkce", persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }) : null;
+const supa = (window.supabase && typeof SUPA !== "undefined") ? window.supabase.createClient(SUPA.url, SUPA.key, { auth: { flowType: "pkce", persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storage: authStore } }) : null;
 // (acctUser / acctProfile are declared up with the cart: the cart needs them on first draw)
 const acctEl = $("#acct");
 function acctView(id) {
@@ -1259,6 +1260,7 @@ function acctView(id) {
   const first = $("#" + id + " input"); if (first && matchMedia("(pointer: fine)").matches) setTimeout(() => first.focus(), 50);
 }
 function openAcct(view) {
+  if ($("#lRemember")) $("#lRemember").checked = authStore.remember();
   acctView(view || (acctUser ? "vIn" : "vLogin"));
   if (!acctEl.open) { if (acctEl.showModal) acctEl.showModal(); else acctEl.setAttribute("open", ""); }
   if (!supa) say(acctEl.querySelector(".v.cur"), "Log in isn't working right now. Email " + BIZ.email + " to book.");
@@ -1325,6 +1327,7 @@ $("#vLogin").addEventListener("submit", async e => {
   if (!okEmail(email)) return say(f, "Type your email.");
   if (!pass) return say(f, "Type your password.");
   busy(f, true); say(f, "Logging in...", true);
+  authStore.setRemember($("#lRemember").checked);
   const { error } = await supa.auth.signInWithPassword({ email, password: pass });
   busy(f, false);
   if (error) return say(f, niceErr(error));
