@@ -975,7 +975,7 @@ const FAQ = [
   ["Do you come to me?", `Yes. We detail at your home or your job. ${AREA}`],
   ["How long does it take?", "About 30 minutes to 2 hours per vehicle, depending on its size and how much it needs."],
   ["Do bigger vehicles cost more?", "A little. " + SIZES.filter(s => s.add).map(s => `${s.label}: +${money(s.add)}`).join(", ") + ". Tap the cart on The In & Out Way page to see your exact price."],
-  ["How do I pay?", CARDS_ON ? "By card on the website, or Cash App or cash to the owner. You can pay a 10% deposit to lock in your spot, and the rest after the job is done and you've seen the car." : "Cash or Cash App, right to the owner, after the job is done and you've seen the car."],
+  ["How do I pay?", CARDS_ON ? "By card on the website, or Cash App or cash to the owner. You can pay a 10% deposit to lock in your spot, and the rest after the job is done and you've seen the car." : "Payment is collected once your detail is complete and you've seen the results. We accept cash and Cash App."],
   ["How do I get $10 off?", "Create a free account (tap Log in, then Create an account). Your first detail is $10 off while you're logged in."],
   ["Can I change or cancel?", "Yes. Tap Change or cancel in this chat. The owner gets your request right away and confirms it."],
 ];
@@ -1111,7 +1111,7 @@ $("#form").addEventListener("submit", async e => {
     $("#formErr").style.display = "block"; return;
   }
   setTok(bk.token);
-  $("#okDep").innerHTML = !CARDS_ON ? `<div class="lock"><b>You're all set!</b><p class="small mut" style="margin:6px 0 10px">You pay after the job, by cash or Cash App, right to the owner.</p><a class="btn full" href="#mybooking">See my booking</a></div>`
+  $("#okDep").innerHTML = !CARDS_ON ? `<div class="lock"><b>You're all set!</b><p class="small mut" style="margin:6px 0 10px">No payment is needed now. Payment is collected once your detail is complete. We accept cash and Cash App.</p><a class="btn full" href="#mybooking">See my booking</a></div>`
     : `<div class="lock"><b>Lock in your spot now?</b><p class="small mut" style="margin:6px 0 0">Pay a 10% deposit (${cents(bk.deposit_due_cents)}). It comes off your final bill.</p>
     <button class="btn full" type="button" id="depBtn" onclick="payNow('deposit', this)">Pay ${cents(bk.deposit_due_cents)} deposit</button>
     <a class="btn line full" href="#mybooking" style="margin-top:10px">Skip, pay after the job</a><p class="small paymsg" role="alert"></p></div>`;
@@ -1138,7 +1138,7 @@ async function payNow(kind, btn) {
   const j = await payFn("pay", { token: bookTok(), kind, back: location.origin + location.pathname }).catch(() => ({ error: "net" }));
   if (j.url) { location.href = j.url; return; }
   if (btn) { btn.disabled = false; btn.textContent = btn.dataset.t; }
-  const why = { cards_off: "Card payments aren't turned on yet. You can pay the owner by cash or Cash App after the job.", paid: "This booking is already paid in full.",
+  const why = { cards_off: "Card payments aren't available yet. Payment is collected once your detail is complete. We accept cash and Cash App.", paid: "This booking is already paid in full.",
     deposit_done: "Your deposit is already paid.", declined: "This booking was canceled.", net: "Couldn't reach the payment page. Check your internet and try again." }[j.error]
     || "Something went wrong. Email " + BIZ.email + ".";
   if (msg) msg.textContent = why;
@@ -1162,13 +1162,13 @@ function drawMyBooking(b) {
     done: b.left_cents ? ["Job done", "Time to pay the rest.", ""] : ["Paid in full", "Thank you!", "ok"], declined: ["Canceled", "The owner couldn't take this one. Email " + BIZ.email + ".", "no"],
     canceled: ["Canceled", "This booking is canceled.", "no"] }[b.status] || ["", "", ""];
   let act = "";
-  if (!CARDS_ON) act = ["declined", "canceled", "done"].includes(b.status) ? "" : `<p class="small mut" style="margin:12px 0 0">You pay after the job, by cash or Cash App, right to the owner.</p>`;
+  if (!CARDS_ON) act = ["declined", "canceled", "done"].includes(b.status) ? "" : `<p class="small mut" style="margin:12px 0 0">Payment is collected once your detail is complete. We accept cash and Cash App.</p>`;
   else if (b.status !== "declined" && b.status !== "canceled" && b.status !== "done" && !b.deposit_cents)
     act = `<div class="lock"><b>Lock in your spot</b><p class="small mut" style="margin:6px 0 0">Pay a 10% deposit (${cents(b.deposit_due_cents)}). It comes off your final bill. The rest is paid after the job.</p>
       <button class="btn" type="button" id="mbDep" onclick="payNow('deposit', this)">Pay ${cents(b.deposit_due_cents)} deposit</button><p class="small paymsg" role="alert"></p></div>`;
   else if (b.deposit_cents && b.left_cents && b.status !== "done") act = `<p class="stat ok">🔒 Spot locked in: ${cents(b.deposit_cents)} deposit paid</p>`;
   if (b.status === "done" && b.left_cents && !CARDS_ON)
-    act = `<div class="lock"><b>Pay ${cents(b.left_cents)} by cash or Cash App</b><p class="small mut" style="margin:8px 0 0">Hand it to the owner. He marks it paid and this page updates by itself.</p></div>`;
+    act = `<div class="lock"><b>Balance due: ${cents(b.left_cents)}</b><p class="small mut" style="margin:8px 0 0">We accept cash and Cash App. Once your payment is received, this page updates automatically.</p></div>`;
   else if (b.status === "done" && b.left_cents)
     act = `<div class="lock"><button class="btn" type="button" id="restBtn" onclick="payNow('rest', this)">Pay ${cents(b.left_cents)} by card</button>
       <p class="small mut" style="margin:10px 0 0">Paying cash or Cash App? Hand it to the owner. He marks it paid and this page updates by itself.</p><p class="small paymsg" role="alert"></p></div>`;
@@ -1439,8 +1439,8 @@ async function botPay() {
   const b = await loadBotBk(); if (!b) return noBooking();
   if (["declined", "canceled"].includes(b.status)) { bm("This booking is canceled, so there's nothing to pay."); return chips([backChip]); }
   if (!b.left_cents) { bm("You're all paid up. Thank you! 🙏"); return chips([backChip]); }
-  if (b.status === "done" && !CARDS_ON) { bm(`You owe <b>${cents(b.left_cents)}</b>. Pay the owner by cash or Cash App, and he'll mark it paid.`); return chips([backChip]); }
-  if (!CARDS_ON) { bm(`Nothing is due yet. You pay after the job (${cents(b.left_cents)}), by cash or Cash App, right to the owner.`); return chips([backChip]); }
+  if (b.status === "done" && !CARDS_ON) { bm(`Your balance is <b>${cents(b.left_cents)}</b>. We accept cash and Cash App, and your receipt updates here once it's received.`); return chips([backChip]); }
+  if (!CARDS_ON) { bm(`Nothing is due yet. Your total (${cents(b.left_cents)}) is collected once your detail is complete. We accept cash and Cash App.`); return chips([backChip]); }
   if (b.status === "done") { bm(`You owe <b>${cents(b.left_cents)}</b>. Pay by card below, or hand cash / Cash App to the owner and he'll mark it paid.`); payBox("rest", "Pay " + cents(b.left_cents) + " by card"); return chips([backChip]); }
   if (b.deposit_cents) { bm(`Your ${cents(b.deposit_cents)} deposit is paid, so your spot is locked in. The rest (${cents(b.left_cents)}) is paid after the job.`); return chips([backChip]); }
   bm(`Nothing is due yet. You can pay a 10% deposit (<b>${cents(b.deposit_due_cents)}</b>) now to lock in your spot. It comes off your final bill.`);
