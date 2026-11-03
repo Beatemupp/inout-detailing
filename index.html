@@ -811,7 +811,9 @@
   <form class="v" id="vReset" novalidate>
     <h3>New password</h3>
     <label class="f" for="rpPass">New password (8 or more characters)</label><input id="rpPass" type="password" autocomplete="new-password" minlength="8" required>
+    <label class="f" for="rpPass2">Type it again</label><input id="rpPass2" type="password" autocomplete="new-password" minlength="8" required>
     <button class="btn" type="submit">Save new password</button>
+    <div class="links"><a href="#" id="rpBack" onclick="acctView(acctUser ? 'vIn' : 'vLogin');return false">Never mind</a></div>
     <p class="msg" role="alert"></p>
   </form>
   <div class="v" id="vIn">
@@ -819,6 +821,7 @@
     <p class="who" id="inWho"></p>
     <p class="small mut">Saved cars, your details and rewards are coming to your account soon.</p>
     <a class="btn" href="#book" onclick="closeAcct()">Book a detail</a>
+    <button class="btn line" type="button" onclick="acctView('vReset')" id="chgPassBtn">Change my password</button>
     <button class="btn line" type="button" id="logoutBtn">Log out</button>
     <p class="msg" role="alert"></p>
   </div>
@@ -1363,11 +1366,12 @@ $("#vForgot").addEventListener("submit", async e => {
 $("#vReset").addEventListener("submit", async e => {
   e.preventDefault(); const f = e.currentTarget, pass = $("#rpPass").value;
   if (pass.length < 8) return say(f, "Password needs 8 or more characters.");
+  if (pass !== $("#rpPass2").value) return say(f, "The two passwords don't match. Type them again.");
   busy(f, true);
   const { error } = await supa.auth.updateUser({ password: pass });
   busy(f, false);
   if (error) return say(f, niceErr(error));
-  $("#rpPass").value = ""; acctView("vIn"); say($("#vIn"), "New password saved. You're logged in.", true);
+  $("#rpPass").value = ""; $("#rpPass2").value = ""; acctView("vIn"); say($("#vIn"), "New password saved. You're logged in.", true);
 });
 $("#logoutBtn").addEventListener("click", async () => {
   if (supa) await supa.auth.signOut();
