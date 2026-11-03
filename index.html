@@ -301,6 +301,14 @@
     background: radial-gradient(70% 45% at 50% 0%, rgba(255,199,44,.12), transparent 70%), linear-gradient(180deg, rgba(10,10,11,.6), rgba(10,10,11,.42) 45%, rgba(10,10,11,.62)); }
   .galbg > .wrap { position: relative; z-index: 1; }
   .legal { max-width: 820px; margin: 0 auto; } .legal h3 { margin: 22px 0 6px; } .legal h3:first-child { margin-top: 0; } .legal p { margin: 0 0 12px; line-height: 1.7; }
+  /* address suggestions while typing (DroGo 2026-11-03) */
+  .addrwrap { position: relative; }
+  .addrlist { position: absolute; left: 0; right: 0; top: 100%; z-index: 20; background: #141416; border: 1px solid var(--yellow); border-top: 0; max-height: 270px; overflow-y: auto; box-shadow: 0 14px 30px rgba(0,0,0,.5); }
+  .addrlist[hidden] { display: none; }
+  .aopt { display: block; width: 100%; text-align: left; padding: 12px 14px; background: none; border: 0; border-top: 1px solid #2a2a2e; color: #f2f2f2; font: inherit; font-size: 15px; cursor: pointer; }
+  .aopt:first-child { border-top: 0; }
+  .aopt.on, .aopt:hover { background: #2a2410; color: #fff; }
+  .addrlist .src { padding: 6px 14px; font-size: 11px; color: #8a8a90; border-top: 1px solid #2a2a2e; }
   .ft.pur { --base: #c9a2f2; --flash: #ffffff; }
   .ft.out.pur { --base: transparent; -webkit-text-stroke-color: #c9a2f2; --flash: #c9a2f2; }
   @media (max-width: 900px) { .tribute .wrap { grid-template-columns: 1fr; gap: 30px; text-align: center; } .tribute .tframe { max-width: 280px; margin: 0 auto; } }
@@ -676,7 +684,7 @@
         <div><label class="f ft" for="fContact">Send my confirmation + pay link by</label>
           <select id="fContact"><option value="text">Text</option><option value="email">Email</option><option value="both">Text and email</option></select></div>
       </div>
-      <label class="f ft" for="fAddr">Where's the car?</label><input id="fAddr" autocomplete="street-address" placeholder="Street address and town" required>
+      <label class="f ft" for="fAddr">Where's the car?</label><div class="addrwrap"><input id="fAddr" autocomplete="off" placeholder="Start typing the street address" required aria-autocomplete="list" aria-controls="addrList"><div class="addrlist" id="addrList" role="listbox" hidden></div></div>
       <label class="f ft" for="fCar">Year, make and model</label><input id="fCar" placeholder="Example: 2020 Honda Civic">
       <div class="two">
         <div><label class="f ft" for="fDay">Day</label><input id="fDay" type="date" required></div>
@@ -721,7 +729,7 @@
     <h3 class="ft yel">Your info</h3>
     <p class="ft">When you book, message us or make an account, we keep your name, phone, email (if you give it), the address where your car is, your car details, and any notes or messages you send.</p>
     <p class="ft">We use it only to book, confirm and do your detail, send you updates about your booking, and answer your messages. Only the owner of In &amp; Out Detailing sees it. We never sell it or share it for ads.</p>
-    <p class="ft">A few trusted services help run the site: Supabase stores bookings and accounts, Brevo sends our emails, and Stripe handles card payments. We never see or keep your card number.</p>
+    <p class="ft">A few trusted services help run the site: Supabase stores bookings and accounts, Brevo sends our emails, Stripe handles card payments, and OpenStreetMap's free Photon service suggests addresses as you type. We never see or keep your card number.</p>
     <p class="ft">Reviews you post are public, with the name you type. Want your info or account deleted? Email <a class="mailLink" href="#">us</a> and it's gone.</p>
     <h3 class="ft yel">Prices &amp; paying</h3>
     <p class="ft">The price on the site is an estimate. The owner confirms the final price after seeing the car, and there are no surprise charges. You pay after the job. A 10% deposit, when offered, is optional and comes off your bill.</p>
@@ -974,6 +982,53 @@ $("#revForm").addEventListener("submit", async e => {
   $("#revForm").style.display = "none"; $("#revOk").classList.add("show");
   $("#revs").scrollIntoView({ behavior: "smooth" });
 });
+
+// address suggestions as you type (free OpenStreetMap "Photon" lookup, no account; DroGo 2026-11-03).
+// Few house numbers are mapped here, so the number they type is kept and the street, town + ZIP are filled in.
+(function addrSuggest() {
+  const inp = $("#fAddr"), box = $("#addrList"); if (!inp || !box) return;
+  let timer = null, items = [], sel = -1, asked = "";
+  const close = () => { box.hidden = true; sel = -1; inp.setAttribute("aria-expanded", "false"); };
+  function show() {
+    if (!items.length) return close();
+    box.innerHTML = items.map((a, i) => `<button type="button" class="aopt ${i === sel ? "on" : ""}" role="option" data-i="${i}">📍 ${esc(a)}</button>`).join("") + '<div class="src">Suggestions from OpenStreetMap</div>';
+    box.hidden = false; inp.setAttribute("aria-expanded", "true");
+  }
+  async function look(q) {
+    const num = (q.match(/^\s*(\d+[A-Za-z]?)\s+/) || [])[1] || "";
+    const url = "https://photon.komoot.io/api/?" + new URLSearchParams({ q, limit: "10", lat: "35.79", lon: "-78.55", lang: "en" }) + "&layer=street&layer=house&bbox=-79.6,35.2,-77.6,36.5";
+    try {
+      const j = await (await fetch(url)).json(), seen = new Set(), out = [];
+      for (const f of j.features || []) {
+        const p = f.properties || {};
+        if (p.state && p.state !== "North Carolina") continue;
+        const street = p.street || p.name, town = p.city || p.town || p.district || p.county || "";
+        if (!street || !town || / at /i.test(street)) continue;   // skip bus stops like "X at Y"
+        const n = num || p.housenumber || "", a = `${n ? n + " " : ""}${street}, ${town}, NC${p.postcode ? " " + p.postcode : ""}`;
+        if (!seen.has(a)) { seen.add(a); out.push(a); }
+        if (out.length >= 5) break;
+      }
+      if (inp.value.trim() === q && document.activeElement === inp) { items = out; sel = -1; show(); }
+    } catch (e) { close(); }   // no internet / lookup down: they just type it themselves
+  }
+  inp.addEventListener("input", () => {
+    clearTimeout(timer); const q = inp.value.trim();
+    if (q.length < 4) { items = []; return close(); }
+    if (q === asked) return;
+    timer = setTimeout(() => { asked = q; look(q); }, 300);
+  });
+  const pickIt = i => { inp.value = items[i]; asked = inp.value.trim(); items = []; close(); };
+  box.addEventListener("pointerdown", e => { const b = e.target.closest(".aopt"); if (!b) return; e.preventDefault(); pickIt(+b.dataset.i); });
+  box.addEventListener("click", e => { const b = e.target.closest(".aopt"); if (b && items.length) pickIt(+b.dataset.i); });
+  inp.addEventListener("keydown", e => {
+    if (box.hidden) return;
+    if (e.key === "ArrowDown") { sel = Math.min(sel + 1, items.length - 1); show(); e.preventDefault(); }
+    else if (e.key === "ArrowUp") { sel = Math.max(sel - 1, 0); show(); e.preventDefault(); }
+    else if (e.key === "Enter" && sel >= 0) { pickIt(sel); e.preventDefault(); }
+    else if (e.key === "Escape") { close(); }
+  });
+  inp.addEventListener("blur", () => setTimeout(close, 200));
+})();
 
 const FAQ = [
   ["Do you come to me?", `Yes. We detail at your home or your job. ${AREA}`],
