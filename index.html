@@ -419,6 +419,9 @@
   .js [data-a].in.ft.on { animation: var(--k) .9s cubic-bezier(.2,.7,.2,1) var(--d, 0s) both, reveal 1.4s cubic-bezier(.25,.6,.3,1) var(--fd, 0s) forwards; }
   .js .hero [data-h].ft { animation: none; }
   .js .hero [data-h].ft.on { animation: var(--k) 1s cubic-bezier(.2,.7,.2,1) var(--d, 0s) both, reveal 1.4s cubic-bezier(.25,.6,.3,1) var(--d, 0s) forwards; }
+  /* home title: after it lands, a slow yellow sweep runs through the see-through letters every 5 s (DroGo 2026-11-03: the one quick flash was too easy to miss) */
+  .js .hero [data-h].ft.out.on { animation: var(--k) 1s cubic-bezier(.2,.7,.2,1) var(--d, 0s) both, reveal 1.4s cubic-bezier(.25,.6,.3,1) var(--d, 0s) forwards, heroSweep 5s linear calc(var(--d, 0s) + 1.6s) infinite; }
+  @keyframes heroSweep { 0% { background-position: 100% 0; } 50% { background-position: 0 0; } 100% { background-position: 0 0; } }
   .hero [data-h]:not(.ft) { animation: var(--k) 1s cubic-bezier(.2,.7,.2,1) both; animation-delay: var(--d, 0s); }
 
   @keyframes fadeInUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: none; } }
