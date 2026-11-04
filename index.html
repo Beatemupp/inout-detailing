@@ -282,8 +282,10 @@
   @keyframes hbeat { 0%, 100% { transform: scale(1); } 14% { transform: scale(1.16); } 28% { transform: scale(1); } 42% { transform: scale(1.1); } 60% { transform: scale(1); } }
   @media (max-width: 900px) { .bf:not(.heart):nth-child(n+9) { display: none; } .bf:nth-child(n+9).heart { display: block; } .bf.heart:nth-child(n+17) { display: none; } }
   /* tiara on her photo (DroGo 2026-11-03): neon pencil lines that draw in, jewels twinkle */
-  .tribute .tphoto { position: relative; padding-top: 34px; }
-  .tribute .tiara { position: absolute; left: 50%; top: -14px; width: 150px; transform: translateX(-50%) rotate(-5deg); z-index: 2; color: #e0aaff; overflow: visible;
+  .tribute .tphoto { position: relative; }
+  .tribute .tpic { position: relative; }
+  /* sits ON her head: --tx/--ty = top of her hair in the photo (% of the picture), --tr = head tilt */
+  .tribute .tiara { position: absolute; left: var(--tx, 33.5%); top: var(--ty, 19.5%); width: 46%; transform: translate(-50%, -88%) rotate(var(--tr, -10deg)); z-index: 2; color: #e0aaff; overflow: visible;
     filter: drop-shadow(0 0 3px #e0aaff) drop-shadow(0 0 10px #b57edc) drop-shadow(0 0 18px #9b5de5); stroke-dasharray: 1; stroke-dashoffset: 1; }
   .tribute.drawn .tiara { animation: bfDraw 2.6s ease-out .4s forwards; }
   .tribute .tiara .gems { opacity: 0; }
@@ -291,7 +293,7 @@
   .tribute .tiara .gems circle:nth-child(odd) { animation-delay: inherit; }
   @keyframes gemIn { to { opacity: 1; } }
   @keyframes twinkle { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
-  @media (max-width: 900px) { .tribute .tiara { width: 120px; top: -8px; } .tribute .tphoto { padding-top: 26px; max-width: 280px; margin: 0 auto; } }
+  @media (max-width: 900px) { .tribute .tphoto { max-width: 280px; margin: 0 auto; } }
   @media (prefers-reduced-motion: reduce) { .tribute .tiara { stroke-dashoffset: 0; } .tribute .tiara .gems { opacity: 1; } }
   /* Gallery background video, dark layer on top so the photos stand out */
   .galbg { position: relative; overflow: hidden; }
@@ -532,6 +534,7 @@
   </div>
   <div class="wrap">
     <div class="tphoto">
+      <div class="tframe" data-a="zoom"><div class="tpic"><img src="brand/tribute-diane.jpg" alt="Mrs. Diane Richardson" loading="lazy">
       <svg class="tiara" viewBox="0 0 120 64" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" filter="url(#pencil)">
         <path pathLength="1" stroke-width="2.4" d="M10 54 C 40 61, 80 61, 110 54"/>
         <path pathLength="1" stroke-width="1.8" d="M14 47 C 42 53, 78 53, 106 47"/>
@@ -542,7 +545,7 @@
         <circle cx="60" cy="7" r="3.6"/><circle cx="36" cy="21" r="2.7"/><circle cx="84" cy="21" r="2.7"/><circle cx="18" cy="32" r="2.1"/><circle cx="102" cy="32" r="2.1"/>
         <circle cx="30" cy="51" r="1.6"/><circle cx="45" cy="53.5" r="1.6"/><circle cx="60" cy="54.5" r="2"/><circle cx="75" cy="53.5" r="1.6"/><circle cx="90" cy="51" r="1.6"/>
       </g></svg>
-      <div class="tframe" data-a="zoom"><img src="brand/tribute-diane.jpg" alt="Mrs. Diane Richardson" loading="lazy"></div>
+      </div></div>
     </div>
     <div data-a="up" style="--d:.15s">
       <div class="eyebrow ft pur">In loving memory</div>
