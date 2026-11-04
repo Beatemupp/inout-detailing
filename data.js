@@ -6,7 +6,7 @@ const BIZ = {
   services: ["Washing", "Waxing", "Buffing", "Vacuuming", "Pressure Washing", "Shampooing"],
   site: "https://inoutdetailing.example", // placeholder until Sprint 3 picks a real address
   payBase: "https://inandoutnc.com/",   // customer booking / pay links the owner sends = the public website (own domain since 2026-11-03)
-  cardsLive: false,   // true once the owner's own Stripe account is connected (see "pops"). Until then the public site shows cash / Cash App only. // customer booking / pay links the owner texts (the shared website for now)
+  cardsLive: true,    // the owner's own live Stripe account is connected (2026-11-03: restricted key "inandoutnc.com website" + webhook "inandoutnc.com payments"). false = public site shows cash / Cash App only. // customer booking / pay links the owner texts (the shared website for now)
 };
 
 // Sizes add to the package price. Prices are samples from detailing notes; the owner sets the real ones.
