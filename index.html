@@ -60,6 +60,8 @@
   .nav a::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: -2px; height: 2px; background: var(--red); transform: scaleX(0); transition: transform .3s; }
   .nav a:hover::after, .nav a.cur::after { transform: scaleX(1); }
   .nav a.cur { --base: var(--yellow); }
+  /* computer: tabs stretch across the bar from the logo to Book now (DroGo 2026-11-03) */
+  @media (min-width: 901px) { .nav { flex: 1; margin: 0 22px 0 32px; } .nav a { flex: 1 1 auto; text-align: center; white-space: nowrap; padding: 7px 10px; } }
   .top .hbook { margin-left: 10px; }
   .menubtn { display: none; margin-left: auto; width: 46px; height: 46px; background: none; border: 1px solid rgba(255,255,255,.35); color: #fff; font-size: 20px; cursor: pointer; }
 
