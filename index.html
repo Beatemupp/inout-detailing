@@ -3,8 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>In & Out Detailing</title>
-<meta name="description" content="Mobile car detailing. We come to you, inside and out. Knightdale, Raleigh, Wake Forest and surrounding areas.">
+<title>Mobile Car Detailing in Raleigh &amp; Knightdale, NC | In &amp; Out Detailing</title>
+<meta name="description" content="Mobile car detailing that comes to you. Full inside + outside detail from $55, plus add-ons. Knightdale, Raleigh, Wake Forest, Youngsville, Cary, Apex and nearby.">
+<!-- SEO (DroGo 2026-11-04): canonical, link previews, business info for Google. No phone number on purpose. -->
+<link rel="canonical" href="https://inandoutnc.com/">
+<meta name="theme-color" content="#0a0a0b">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="In &amp; Out Detailing">
+<meta property="og:url" content="https://inandoutnc.com/">
+<meta property="og:title" content="In &amp; Out Detailing | Mobile Car Detailing, We Come to You">
+<meta property="og:description" content="Full inside + outside detail from $55. Knightdale, Raleigh, Wake Forest and surrounding areas.">
+<meta property="og:image" content="https://inandoutnc.com/brand/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"AutoWash","@id":"https://inandoutnc.com/#business",
+ "name":"In & Out Detailing","url":"https://inandoutnc.com/","email":"hello@inandoutnc.com",
+ "logo":"https://inandoutnc.com/brand/logo.png","image":"https://inandoutnc.com/brand/og.jpg",
+ "slogan":"Service With A Smile","priceRange":"$55-$85",
+ "description":"Mobile car detailing that comes to you: hand wash, wheels and tires, glass, full vacuum, interior wipe down, stain removal, plus shampoo, wax, engine bay, pressure washing and buff + polish add-ons.",
+ "areaServed":[{"@type":"City","name":"Knightdale, NC"},{"@type":"City","name":"Raleigh, NC"},{"@type":"City","name":"Wake Forest, NC"},{"@type":"City","name":"Youngsville, NC"},{"@type":"City","name":"Cary, NC"},{"@type":"City","name":"Apex, NC"},{"@type":"City","name":"Creedmoor, NC"},{"@type":"Place","name":"Brier Creek, Raleigh, NC"}],
+ "makesOffer":{"@type":"Offer","name":"In & Out Full: inside + outside detail","price":"55","priceCurrency":"USD"}}
+</script>
 <link rel="icon" href="brand/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&family=Oswald:wght@500;700&family=Great+Vibes&display=swap" rel="stylesheet">
@@ -395,7 +416,7 @@
 
   /* footer: service areas, links, contact (on every page) */
   footer { background: #0d0d0f; border-top: 3px solid var(--red); padding: 64px 0 120px; }
-  footer .cols { display: grid; grid-template-columns: 1.3fr 1fr; gap: 34px; }
+  footer .cols { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 34px; }
   footer h3 { font-size: 13px; margin-bottom: 14px; }
   footer a { text-decoration: none; display: block; padding: 4px 0; }
   footer .bar2 { width: 40px; height: 2px; background: var(--red); margin: -6px 0 14px; }
@@ -780,6 +801,10 @@
     <img src="brand/logo.png" alt="In & Out Detailing logo" style="width:190px;margin-bottom:18px"><span class="tagline">Service With A Smile <svg class="smile" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path stroke-width="1.7" d="M12.3 2.7 C 6.6 2.3, 2.6 6.5, 2.8 12.2 C 3 17.7, 7 21.4, 12.3 21.2 C 17.7 21, 21.5 17, 21.2 11.6 C 20.9 6.4, 16.9 2.9, 11.6 3.3"/><path stroke-width=".9" opacity=".55" d="M11.4 3.1 C 6.2 3.4, 3.1 7.4, 3.4 12.6 C 3.8 17.4, 7.6 20.6, 12.6 20.5"/><path stroke-width="1.9" d="M8.7 9.1 C 8.8 9.6, 8.8 10.2, 8.7 10.6"/><path stroke-width="1.9" d="M15.2 8.9 C 15.3 9.5, 15.3 10.1, 15.2 10.6"/><path stroke-width="1.7" d="M7.2 13.9 C 8.6 17.1, 14.9 17.6, 16.9 13.7"/><path stroke-width=".9" opacity=".55" d="M7.8 14.6 C 9.6 16.6, 14 16.9, 16.1 14.6"/></g></svg></span>
   </div>
   <div data-a="up" style="--d:.15s">
+    <h3 class="ft">Areas we serve</h3><div class="bar2"></div>
+    <p class="ft mut">Knightdale · Raleigh · Wake Forest · Youngsville · Cary · Apex · Brier Creek · Creedmoor, NC</p>
+  </div>
+  <div data-a="up" style="--d:.3s">
     <h3 class="ft">Contact</h3><div class="bar2"></div>
     <a id="mailFoot" class="ft mut"></a><a href="#privacy" class="ft mut">Privacy &amp; refunds</a>
   </div>
@@ -1107,7 +1132,8 @@ function route() {
   pages.forEach(p => p.classList.toggle("cur", p === page));
   document.body.className = page.id === "home" ? "home" : "p-" + page.id;
   document.querySelectorAll("#nav a, #mmenu a").forEach(a => a.classList.toggle("cur", a.getAttribute("href") === "#" + page.id));
-  document.title = page.dataset.name ? page.dataset.name + " · In & Out Detailing" : "In & Out Detailing";
+const HOME_TITLE = window.HOME_TITLE || (window.HOME_TITLE = document.title);
+  document.title = page.dataset.name ? page.dataset.name + " · In & Out Detailing" : HOME_TITLE;   // home keeps the SEO title from <title> (2026-11-04)
   closeMenu();
   if (changed) {
     page.querySelectorAll(".ft").forEach(el => el.classList.remove("on"));
