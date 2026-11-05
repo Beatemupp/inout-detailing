@@ -224,6 +224,10 @@
   .rev { border-radius: 2px; background: #141416; }
   .rev .stars { color: var(--yellow); letter-spacing: 3px; }
   #revs { margin-bottom: 24px; }
+  #gRev { display: none; text-align: center; max-width: 560px; margin: 0 auto 28px; }
+  #reviews.gmode #gRev { display: block; }
+  #reviews.gmode #revForm, #reviews.gmode #revOk { display: none !important; }
+  .gstars { color: var(--yellow); font-size: 28px; letter-spacing: .12em; margin-bottom: 6px; }
   #revForm, #revOk { max-width: 560px; margin: 0 auto; }
   /* log in pop-up (Sprint 1 accounts, 2026-11-02) */
   #acct { width: min(440px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow: auto; padding: 26px 22px 22px; border: 1px solid #3a3a40; border-top: 3px solid var(--red); border-radius: 2px; background: #141416; color: var(--text); }
@@ -671,7 +675,7 @@
 <!-- REVIEWS -->
 <main class="page inner" id="reviews" data-name="Reviews">
 <section class="dark2"><div class="wrap">
-  <div class="title" data-a="down"><h2 class="ft out">Reviews</h2><div class="bar2"></div><p class="ft mut">Had a detail with us? Tell people how it went.</p></div>
+  <div class="title" data-a="down"><h2 class="ft out">Reviews</h2><div class="bar2"></div><p class="ft mut" id="revSub">Had a detail with us? Tell people how it went.</p></div>
   <div class="grid3" id="revs"></div>
   <form class="card" id="revForm" novalidate data-a="up">
     <h3 class="ft">Leave a review</h3>
@@ -681,6 +685,13 @@
     <p class="small" id="revErr" style="color:var(--flame);display:none"></p>
     <button class="btn full redb" style="margin-top:16px" type="submit">Post my review</button>
   </form>
+  <!-- Google reviews (DroGo 2026-11-04): once app_settings.google_review_url is set, this button replaces the site form -->
+  <div class="card greview" id="gRev" data-a="up">
+    <div class="gstars" aria-hidden="true">★★★★★</div>
+    <h3 class="ft">Leave us a review on Google</h3>
+    <p class="ft mut">It takes a minute and helps a small, local business more than anything.</p>
+    <a class="btn full redb" id="gRevBtn" href="#" target="_blank" rel="noopener">Review us on Google</a>
+  </div>
   <div class="card ok-box" id="revOk">
     <div class="flagwave">🏁</div>
     <h3 class="ft">Thank you!</h3>
@@ -1227,7 +1238,13 @@ async function payFn(name, body) {
 }
 // 10% deposit by Cash App (DroGo 2026-11-03): the owner's $Cashtag comes from the server (pay_info); card deposit once Stripe is live
 let PAYINFO = { cashtag: "", cards_live: false };
-setTimeout(async () => { try { const r = await supa.rpc("pay_info"); if (r.data) { PAYINFO = r.data; if ($(".page.cur") && $(".page.cur").id === "mybooking") { mbSeen = null; loadMyBooking(); } } } catch (e) {} }, 0);
+setTimeout(async () => { try { const r = await supa.rpc("pay_info"); if (r.data) { PAYINFO = r.data; googleReview(); if ($(".page.cur") && $(".page.cur").id === "mybooking") { mbSeen = null; loadMyBooking(); } } } catch (e) {} }, 0);
+function googleReview() {   // only a real Google link turns it on
+  const u = String(PAYINFO.google_review || "").trim();
+  if (!/^https:\/\/(g\.page|search\.google\.com|www\.google\.com|maps\.app\.goo\.gl|g\.co)\//.test(u)) return;
+  $("#gRevBtn").href = u; $("#reviews").classList.add("gmode");
+  $("#revSub").textContent = "Had a detail with us? Tell people how it went on Google.";
+}
 const cashTag = () => { const t = String(PAYINFO.cashtag || "").replace(/^\$?/, "$").replace(/[^$\w-]/g, ""); return t.length > 1 ? t : ""; };
 const cashUrl = cents => `https://cash.app/${cashTag()}/${(cents / 100).toFixed(2)}`;
 function cashDepBox(b) {
