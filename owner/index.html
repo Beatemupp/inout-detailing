@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="In & Out">
+<meta name="theme-color" content="#0b0b0c">
+<title>In & Out Owner</title>
+<link rel="manifest" href="owner.webmanifest">
+<link rel="apple-touch-icon" href="owner-icon-180.png">
+<link rel="icon" type="image/png" href="owner-icon-192.png">
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../app.css">
+<style>
+  /* 2026-11-08 (DroGo): built like the website (logo header, tabs across the top, outline titles with the yellow sweep) + tabs spin like a cube */
+  :root { --red: #e3262f; }
+  body { background: #0a0a0b; padding-bottom: calc(40px + env(safe-area-inset-bottom)); max-width: 680px; margin: 0 auto; overflow-x: hidden; }
+  .top { position: sticky; top: 0; z-index: 30; background: rgba(10,10,11,.95); backdrop-filter: blur(8px); box-shadow: 0 1px 0 var(--line); padding-top: env(safe-area-inset-top); }
+  .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 16px 6px; }
+  .logo-link { display: flex; flex-direction: column; align-items: center; text-decoration: none; }
+  .logo-link img { height: 52px; width: auto; }
+  .tagline { display: block; color: var(--yellow); font: 800 9px/1.2 "Montserrat", sans-serif; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; margin-top: 3px; text-align: center; }
+  .tagline .smile { width: 1.5em; height: 1.5em; vertical-align: -.42em; margin-left: .15em; overflow: visible; }
+  .tools { display: flex; align-items: center; gap: 12px; }
+  .bell { position: relative; background: none; border: 2px solid var(--yellow); color: var(--yellow); border-radius: 50%; width: 44px; height: 44px; font-size: 20px; cursor: pointer; }
+  .bell .dot { position: absolute; top: -3px; right: -3px; width: 13px; height: 13px; border-radius: 50%; background: var(--red); border: 2px solid #0a0a0b; display: none; }
+  .bell.off .dot { display: block; }
+  #outBtn { color: var(--muted); font: 700 12px "Montserrat", sans-serif; letter-spacing: .1em; text-transform: uppercase; text-decoration: none; }
+  .nav { display: flex; overflow-x: auto; scrollbar-width: none; padding: 2px 6px 0; }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav button { flex: 1 0 auto; background: none; border: 0; color: var(--text); font: 700 12px/1 "Montserrat", sans-serif; letter-spacing: .1em; text-transform: uppercase;
+    padding: 12px 10px 14px; position: relative; cursor: pointer; white-space: nowrap; min-height: 44px; }
+  .nav button + button::before { content: ""; position: absolute; left: 0; top: 12px; bottom: 14px; width: 1px; background: rgba(255,255,255,.22); }
+  .nav button::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 6px; height: 2px; background: var(--red); transform: scaleX(0); transition: transform .3s; }
+  .nav button.on { color: var(--yellow); }
+  .nav button.on::after { transform: scaleX(1); }
+  .nav .badge { margin-left: 4px; font-size: 11px; min-width: 18px; height: 18px; background: var(--red); }
+  @media (max-width: 480px) {   /* all 5 tabs fit on an iPhone */
+    .nav { padding: 2px 2px 0; }
+    .nav button { font-size: 10.5px; letter-spacing: .05em; padding: 12px 6px 14px; }
+    .nav button::after { left: 6px; right: 6px; }
+    .nav .badge { margin-left: 3px; min-width: 16px; height: 16px; font-size: 10px; padding: 0 4px; }
+    .sum span { font-size: 10px; letter-spacing: .04em; }
+  }
+  /* text sweep like the website: fades in once, yellow edge sweeps across, then still */
+  .ft { --base: var(--text); --flash: var(--yellow); color: transparent !important; -webkit-text-fill-color: transparent;
+    background: linear-gradient(100deg, var(--base) 0 40%, var(--flash) 48%, transparent 56% 100%) 0 0 / 300% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; opacity: 0; background-position: 100% 0; }
+  .ft.on { animation: reveal 1.4s cubic-bezier(.25,.6,.3,1) var(--fd, 0s) forwards; }
+  .ft.done { opacity: 1; background-position: 0 0; }
+  .ft.yel { --base: var(--yellow); --flash: #ffffff; }
+  .ft.out { --base: transparent; -webkit-text-stroke: 1.5px var(--text); }
+  @keyframes reveal { from { opacity: 0; background-position: 100% 0; } 25% { opacity: 1; } to { opacity: 1; background-position: 0 0; } }
+  .eyebrow { font: 700 11px "Montserrat", sans-serif; letter-spacing: .32em; text-transform: uppercase; color: var(--yellow); }
+  .hd { padding: 18px 16px 8px; text-align: center; }
+  .hd h1 { font: 700 30px/1.15 "Oswald", sans-serif; text-transform: uppercase; letter-spacing: .04em; margin: 8px 0 0; }
+  .ptitle { text-align: center; margin: 4px 0 4px; }
+  .ptitle h2 { font: 700 34px/1.1 "Oswald", sans-serif; text-transform: uppercase; letter-spacing: .06em; margin: 0; }
+  .bar2 { width: 90px; height: 3px; background: linear-gradient(90deg, var(--yellow), var(--red)); margin: 12px auto 0; }
+  .sum { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 16px; }
+  .sum div { background: #141416; border: 1px solid var(--line); border-top: 3px solid var(--red); border-radius: 2px; padding: 12px; text-align: center; }
+  .sum b { display: block; font: 700 24px/1.1 "Oswald", sans-serif; color: var(--yellow); }
+  .sum span { font-size: 11px; color: var(--muted); font-family: "Montserrat", sans-serif; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .card { background: #141416; border-radius: 4px; }
+  .btn { font-family: "Montserrat", system-ui, sans-serif; letter-spacing: .04em; }
+  /* cube spin between tabs */
+  .stage { position: relative; perspective: 1400px; }
+  .stage.spinning { overflow: hidden; }
+  .face { backface-visibility: hidden; -webkit-backface-visibility: hidden; background: #0a0a0b; }
+  .face.old { position: absolute; top: 0; left: 0; right: 0; pointer-events: none; }
+  .cube-out-l { transform-origin: 100% 50%; animation: cubeOutL .65s cubic-bezier(.45,.05,.35,1) forwards; }
+  .cube-in-l { transform-origin: 0% 50%; animation: cubeInL .65s cubic-bezier(.45,.05,.35,1) both; }
+  .cube-out-r { transform-origin: 0% 50%; animation: cubeOutR .65s cubic-bezier(.45,.05,.35,1) forwards; }
+  .cube-in-r { transform-origin: 100% 50%; animation: cubeInR .65s cubic-bezier(.45,.05,.35,1) both; }
+  @keyframes cubeOutL { 50% { transform: translateX(-50%) translateZ(-160px) rotateY(-45deg); } to { transform: translateX(-100%) rotateY(-90deg); opacity: .3; } }
+  @keyframes cubeInL { from { transform: translateX(100%) rotateY(90deg); opacity: .3; } 50% { transform: translateX(50%) translateZ(-160px) rotateY(45deg); } }
+  @keyframes cubeOutR { 50% { transform: translateX(50%) translateZ(-160px) rotateY(45deg); } to { transform: translateX(100%) rotateY(90deg); opacity: .3; } }
+  @keyframes cubeInR { from { transform: translateX(-100%) rotateY(-90deg); opacity: .3; } 50% { transform: translateX(-50%) translateZ(-160px) rotateY(-45deg); } }
+  @media (prefers-reduced-motion: reduce) { .cube-out-l, .cube-in-l, .cube-out-r, .cube-in-r { animation: none; } .face.old { display: none; } }
+  .alertbar { display: flex; gap: 10px; align-items: center; border: 2px solid var(--yellow); background: #2a2410; border-radius: 4px; padding: 12px 14px; cursor: pointer; font-weight: 700; }
+  .alertbar .go { margin-left: auto; color: var(--yellow); font: 800 12px "Montserrat", sans-serif; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .steps { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
+  main { padding: 16px; display: grid; gap: 14px; }
+  .job.next { border: 2px solid var(--yellow); }
+  .job .t { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .job .time { font: 700 26px/1 "Oswald", sans-serif; }
+  .job .pr { font: 700 26px/1 "Oswald", sans-serif; color: var(--yellow); }
+  .job .who { font-size: 19px; font-weight: 800; margin-top: 8px; }
+  .job .what { color: var(--muted); margin: 2px 0 12px; }
+  .big { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .big .btn { min-height: 56px; font-size: 17px; }
+  .photos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .photos label { cursor: pointer; }
+  .photos input { display: none; }
+  .pill { font-size: 12px; font-weight: 800; padding: 3px 9px; border-radius: 999px; background: var(--panel2); color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .pill.go { background: var(--yellow); color: #111; }
+  .pill.paid { background: var(--ok); color: #062; }
+  /* Customers tab (DroGo 2026-11-03) */
+  .cust { cursor: pointer; }
+  .cust .top2 { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .cust .meta { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  .cust .more { display: none; margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+  .cust.open .more { display: block; }
+  .cust .hist div { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; padding: 4px 0; }
+  #custSearch { min-height: 50px; font-size: 17px; }
+  .sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; z-index: 40; }
+  .sheet-bg.show { display: block; }
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; background: #141416; border-top: 3px solid var(--yellow); border-radius: 18px 18px 0 0; padding: 22px 16px calc(22px + env(safe-area-inset-bottom));
+    transform: translateY(110%); transition: transform .2s; z-index: 41; max-width: 680px; margin: 0 auto; display: grid; gap: 10px; max-height: 88vh; overflow: auto; }
+  .sheet.show { transform: none; }
+  .sheet .btn { min-height: 60px; font-size: 18px; }
+  .empty { text-align: center; color: var(--muted); padding: 40px 10px; }
+  body.out .sum, body.out .nav, body.out .tools { display: none; }
+  #lg input { min-height: 52px; font-size: 17px; }
+  /* Messages tab: customers write from the website, the owner answers here (DroGo 2026-11-03) */
+  .chat-row { display: flex; justify-content: space-between; gap: 10px; align-items: center; cursor: pointer; }
+  .chat-row .prev { color: var(--muted); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
+  .chat-row.unread { border: 2px solid var(--yellow); }
+  .bubbles { display: grid; gap: 8px; }
+  .bub { max-width: 82%; padding: 10px 13px; border-radius: 16px; background: var(--panel2); white-space: pre-wrap; word-wrap: break-word; }
+  .bub.me { justify-self: end; background: var(--yellow); color: #111; }
+  .bub small { display: block; font-size: 11px; opacity: .65; margin-top: 4px; }
+  .replybox { display: grid; gap: 8px; }
+  .replybox textarea { min-height: 70px; font-size: 17px; }
+  .chg { margin: 10px 0; padding: 12px; border-radius: 12px; border: 2px solid var(--yellow); background: #2a2410; }
+  .chg .big { margin-top: 10px; }
+</style>
+</head>
+<body class="out">
+<header class="top">
+  <div class="wrap">
+    <a class="logo-link" href="#" onclick="go('today');return false" aria-label="Today"><img src="../brand/logo.png" alt="In & Out Detailing"><span class="tagline">Service With A Smile <svg class="smile" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path stroke-width="1.7" d="M12.3 2.7 C 6.6 2.3, 2.6 6.5, 2.8 12.2 C 3 17.7, 7 21.4, 12.3 21.2 C 17.7 21, 21.5 17, 21.2 11.6 C 20.9 6.4, 16.9 2.9, 11.6 3.3"/><path stroke-width=".9" opacity=".55" d="M11.4 3.1 C 6.2 3.4, 3.1 7.4, 3.4 12.6 C 3.8 17.4, 7.6 20.6, 12.6 20.5"/><path stroke-width="1.9" d="M8.7 9.1 C 8.8 9.6, 8.8 10.2, 8.7 10.6"/><path stroke-width="1.9" d="M15.2 8.9 C 15.3 9.5, 15.3 10.1, 15.2 10.6"/><path stroke-width="1.7" d="M7.2 13.9 C 8.6 17.1, 14.9 17.6, 16.9 13.7"/><path stroke-width=".9" opacity=".55" d="M7.8 14.6 C 9.6 16.6, 14 16.9, 16.1 14.6"/></g></svg></span></a>
+    <div class="tools"><button class="bell off" id="bellBtn" onclick="alertSheet()" aria-label="Alerts and calendar">🔔<span class="dot"></span></button><a href="#" id="outBtn" onclick="logout();return false">Log out</a></div>
+  </div>
+  <nav class="nav" id="nav">
+    <button data-tab="today" class="on">Today</button>
+    <button data-tab="req">Requests<span class="badge" id="reqN" style="display:none"></span></button>
+    <button data-tab="done">Done</button>
+    <button data-tab="msg">Messages<span class="badge" id="msgN" style="display:none"></span></button>
+    <button data-tab="cust">Customers</button>
+  </nav>
+</header>
+<div class="hd">
+  <div class="eyebrow" id="date"></div>
+  <h1 id="hello"></h1>
+</div>
+<div class="sum">
+  <div><b id="sJobs">0</b><span>jobs booked</span></div>
+  <div><b id="sMade">$0</b><span>paid today</span></div>
+  <div><b id="sLeft">$0</b><span>still to come</span></div>
+</div>
+<div class="stage" id="stage"><main id="main" class="face"><div class="empty">Loading...</div></main></div>
+
+<div class="sheet-bg" id="bg"></div>
+<div class="sheet" id="sheet"></div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="../data.js"></script>
+<script>
+// Owner app on real bookings (Supabase, DroGo 2026-11-02). Log in with the business account; only owners can see bookings.
+const $ = s => document.querySelector(s);
+const supa = window.supabase ? window.supabase.createClient(SUPA.url, SUPA.key, { auth: { persistSession: true, autoRefreshToken: true, storageKey: "inout-owner-auth", storage: authStore } }) : null;
+let tab = "today", rows = [], me = null, loaded = false, loadErr = "", loginMsg = "";
+let chats = [], msgs = [], openChat = null, revs = [], custs = [], custQ = "", custOpen = null;   // Messages tab (+ website reviews)
+const shots = {}; // photo previews, this visit only
+const digits = s => (s || "").replace(/\D/g, "");
+const cents = c => "$" + (c / 100).toFixed(2).replace(/\.00$/, "");
+const esc = t => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const left = r => Math.max(r.total_cents - r.paid_cents, 0);
+const first = r => esc((r.name || "").split(" ")[0]);
+const custLink = r => (BIZ.payBase || new URL("site2.html", location.href).href) + "?b=" + r.token + "#mybooking";
+const smsHref = (r, text) => "sms:" + digits(r.phone) + "&body=" + encodeURIComponent(text);
+const mailHref = (r, subject, text) => "mailto:" + encodeURIComponent(r.email) + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(text);
+// the customer picked text, email or both on the booking form (DroGo 2026-11-02): show a button for each way they picked
+// emails now go out by themselves (Brevo, 2026-11-03), so only the Text button stays; customers who gave an email get it automatically
+function sendButtons(r, subject, text, ids) {
+  const want = r.email ? (r.contact === "email" ? [] : ["text"]) : ["text"];
+  const auto = r.email ? `<div class="card" id="${ids[1]}" style="text-align:center">📧 We email ${first(r)} automatically (${esc(r.email)}).</div>` : "";
+  return want.map(w => w === "text"
+    ? `<a class="btn" id="${ids[0]}" href="${esc(smsHref(r, text))}" onclick="closeSheet()">💬 Text ${first(r)}</a>`
+    : "").join("") + auto
+    + `<div class="small muted" style="text-align:center">${r.contact === "text" ? "They asked for a text." : r.contact === "email" ? "They asked for an email." : "They asked for a text and an email."}</div>`;
+}
+const byId = id => rows.find(x => x.id === id);
+const isToday = iso => iso && new Date(iso).toDateString() === new Date().toDateString();
+const jobsList = () => rows.filter(r => r.status === "booked" || (r.status === "done" && left(r) > 0)).sort((a, b) => (a.status === "done") - (b.status === "done"));
+
+function toast(t) { const el = $("#toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 2600); }
+function sheet(html) { $("#sheet").innerHTML = html; $("#sheet").classList.add("show"); $("#bg").classList.add("show"); }
+function closeSheet() { $("#sheet").classList.remove("show"); $("#bg").classList.remove("show"); }
+$("#bg").onclick = closeSheet;
+
+function header() {
+  const h = new Date().getHours();
+  $("#hello").textContent = (h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening") + ", Owner";
+  $("#date").textContent = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+  $("#sJobs").textContent = rows.filter(r => r.status === "booked").length;
+  $("#sMade").textContent = cents(rows.reduce((t, r) => t + (r.payments || []).filter(p => isToday(p.at)).reduce((u, p) => u + p.cents - (p.tip || 0), 0), 0));
+  $("#sLeft").textContent = cents(jobsList().reduce((t, r) => t + left(r), 0));
+  const n = rows.filter(r => r.status === "requested" || (r.change_req && !r.change_req.answer)).length;
+  $("#reqN").style.display = n ? "inline-grid" : "none"; $("#reqN").textContent = n;
+  const u = chats.filter(c => c.owner_unread > 0).length;
+  $("#msgN").style.display = u ? "inline-grid" : "none"; $("#msgN").textContent = u;
+  appBadge();
+}
+
+function what(r) {
+  return `${r.email ? "📧 " + esc(r.email) + " (wants " + esc(r.contact === "both" ? "text + email" : r.contact) + ")<br>" : ""}${esc(r.car || "Car not given")}<br>${esc(pkgName(r.pkg))}${r.adds.length ? " + " + r.adds.map(a => esc(addName(a))).join(", ") : ""}${r.first_time ? "<br>⭐ First detail ($10 off)" : ""}<br>📍 ${esc(r.addr)}`
+    + `${r.photos ? "<br>📷 " + r.photos + " car photo" + (r.photos > 1 ? "s" : "") + " (on their phone)" : ""}${r.note ? "<br>💬 " + esc(r.note) : ""}`;
+}
+// customer asked (website bot) to move or cancel: owner approves or says no (DroGo 2026-11-03)
+function chgBox(r) {
+  const c = r.change_req; if (!c || c.answer) return "";
+  const was = r.booked_time || (r.day_text + (r.time_text ? ", " + r.time_text : ""));
+  return `<div class="chg" data-chg="${r.id}">${c.kind === "cancel" ? `🚫 <b>${first(r)} wants to cancel</b> (${esc(was)})${r.deposit_cents ? "<br>They paid a " + cents(r.deposit_cents) + " deposit: refund it in Stripe if you want." : ""}`
+      : `🔁 <b>${first(r)} wants to move it</b><br>to <b>${esc(c.day)}, ${esc(c.time)}</b> (was ${esc(was)})`}
+    <div class="big"><button class="btn ok" onclick="chg('${r.id}', true)">${c.kind === "cancel" ? "Yes, cancel it" : "Approve"}</button><button class="btn dark" onclick="chg('${r.id}', false)">Say no</button></div></div>`;
+}
+async function chg(id, ok) {
+  const { error } = await supa.rpc("owner_change", { p_id: id, p_ok: ok });
+  if (error) { toast("Didn't save. Check the internet and try again."); return; }
+  toast(ok ? "Done. Their booking page shows it now." : "Got it. They'll see you said no. Message them if you want to offer another time.");
+  await load();
+}
+// customer paid the 10% deposit by Cash App (link in their booking email): the owner confirms it (DroGo 2026-11-03)
+function depBtn(r) {
+  if (r.deposit_cents || r.paid_cents >= r.total_cents || !["requested", "booked"].includes(r.status)) return "";
+  return `<button class="btn dark full sm" style="margin-top:8px" onclick="gotDeposit('${r.id}')">💵 Deposit received (${cents(Math.max(50, Math.round(r.total_cents * .1)))} Cash App)</button>`;
+}
+async function gotDeposit(id) {
+  const { error } = await supa.rpc("owner_deposit", { p_id: id, p_how: "Cash App" });
+  if (error) { toast("Didn't save. Check the internet and try again."); return; }
+  toast("Deposit saved. They get a 'spot locked in' email."); await load();
+}
+function payPills(r) {
+  return (r.deposit_cents ? ` <span class="pill paid">Deposit ${cents(r.deposit_cents)} paid</span>` : "") + (r.status === "done" && left(r) ? ` <span class="pill go">${cents(left(r))} still owed</span>` : "");
+}
+
+function jobCard(r, i) {
+  const owed = r.status === "done";
+  const ph = k => shots[r.id + k] ? `<img src="${shots[r.id + k]}" alt="">` : "";
+  return `<div class="card job ${i === 0 && !owed ? "next" : ""}" data-id="${r.id}">
+    <div class="t"><span class="time">${esc(r.booked_time || r.day_text)}</span><span class="pr">${cents(r.total_cents)}</span></div>
+    ${owed ? '<span class="pill">Job done</span>' : i === 0 ? '<span class="pill go">Up next</span>' : '<span class="pill">Booked</span>'}${payPills(r)}
+    <div class="who">${esc(r.name)}</div>
+    ${chgBox(r)}${depBtn(r)}
+    <div class="what">${what(r)}</div>
+    <div class="big">
+      <a class="btn dark" href="tel:${digits(r.phone)}">📞 Call</a>
+      <a class="btn dark" href="https://maps.apple.com/?daddr=${encodeURIComponent(r.addr)}" target="_blank" rel="noopener">🧭 Directions</a>
+    </div>
+    ${owed ? "" : `<div class="photos">
+      <label><input type="file" accept="image/*" capture="environment" onchange="snap('${r.id}','b',this)"><div class="ph before">${ph("b")}<span>📷 BEFORE</span></div></label>
+      <label><input type="file" accept="image/*" capture="environment" onchange="snap('${r.id}','a',this)"><div class="ph after">${ph("a")}<span>📷 AFTER</span></div></label>
+    </div>`}
+    <button class="btn full getpaid" style="margin-top:10px;min-height:60px;font-size:18px" onclick="finish('${r.id}')">${owed ? "💵 Get paid (" + cents(left(r)) + ")" : "✅ Done, get paid"}</button>
+  </div>`;
+}
+
+function loginView() {
+  return `<form class="card" id="lg" onsubmit="login(event)" style="display:grid;gap:10px">
+    <h3>Owner log in</h3>
+    <input id="oEmail" type="email" autocomplete="username" placeholder="Business email" required>
+    <input id="oPass" type="password" autocomplete="current-password" placeholder="Password" required>
+    <label style="display:flex;gap:10px;align-items:center;font-size:16px"><input type="checkbox" id="oRemember" ${authStore.remember() ? "checked" : ""} style="width:22px;height:22px;min-height:22px"> Remember me on this phone</label>
+    <button class="btn full" type="submit">Log in</button>
+    <p class="small" id="lgMsg" style="color:#ff8a8a;margin:0">${esc(loginMsg)}</p>
+    <p class="small muted" style="margin:0">Forgot it? Use "Forgot password" on the website's Log in.</p>
+  </form>`;
+}
+
+// page title like the website: big outline word + yellow/red bar; sweeps in when the tab opens, stays still on the 15 s refresh
+const TITLES = { today: "Today's Jobs", req: "Requests", done: "Done + Paid", msg: "Messages", cust: "Customers" };
+let animNext = true;
+const pageTitle = () => `<div class="ptitle"><h2 class="ft out">${TITLES[tab]}</h2><div class="bar2"></div></div>`;
+const alertBar = () => alertsOk ? "" : `<div class="alertbar" id="alertBar" onclick="alertSheet()">🔔 Get a pop-up for every booking, payment and message<span class="go">Turn on ›</span></div>`;
+function draw() {
+  drawPage();
+  document.querySelectorAll("#main .ft:not(.on):not(.done)").forEach(e => animNext ? requestAnimationFrame(() => e.classList.add("on")) : e.classList.add("done"));
+  animNext = false;
+}
+// tabs spin like a cube (DroGo 2026-11-08): the old page turns away, the new one turns in from the side you're going to
+const TABS = ["today", "req", "done", "msg", "cust"];
+function go(t) {
+  const same = t === tab;
+  if (same && !(t === "msg" && openChat)) { scrollTo(0, 0); return; }
+  const dir = TABS.indexOf(t) >= TABS.indexOf(tab) ? "l" : "r";
+  const stage = $("#stage"), main = $("#main");
+  scrollTo(0, 0);
+  let old = null;
+  if (me && loaded && !same && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    old = main.cloneNode(true); old.removeAttribute("id"); old.querySelectorAll("[id]").forEach(e => e.removeAttribute("id"));
+    old.classList.remove("cube-in-l", "cube-in-r"); old.classList.add("old", "cube-out-" + dir);
+    stage.insertBefore(old, main); stage.classList.add("spinning");
+    main.classList.remove("cube-in-l", "cube-in-r"); void main.offsetWidth; main.classList.add("cube-in-" + dir);
+  }
+  tab = t; if (tab !== "msg") openChat = null; animNext = true; draw();
+  if (old) setTimeout(() => { old.remove(); stage.classList.remove("spinning"); main.classList.remove("cube-in-l", "cube-in-r"); }, 700);
+}
+function drawPage() {
+  document.body.classList.toggle("out", !me);
+  if (!me) { $("#main").innerHTML = loginView(); return; }
+  header();
+  document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
+  const m = $("#main");
+  if (!loaded) { m.innerHTML = '<div class="empty">Loading bookings...</div>'; return; }
+  const errBox = pageTitle() + (tab === "today" ? alertBar() : "") + (loadErr ? `<div class="card" style="color:#ff8a8a">${esc(loadErr)}</div>` : "");
+  if (tab === "today") {
+    const list = jobsList();
+    m.innerHTML = errBox + (list.length ? list.map(jobCard).join("") : '<div class="empty"><div style="font-size:48px">🏁</div>No booked jobs. New website bookings show up under Requests.</div>');
+  } else if (tab === "req") {
+    const rs = rows.filter(r => r.status === "requested");
+    const moves = rows.filter(r => r.status === "booked" && r.change_req && !r.change_req.answer);   // booked jobs the customer wants to move / cancel
+    m.innerHTML = errBox + moves.map(r => `<div class="card req" data-id="${r.id}"><b style="font-size:19px">${esc(r.name)}</b> <span class="pill">Booked</span>${chgBox(r)}</div>`).join("")
+      + (rs.length || moves.length ? rs.map(r => `<div class="card req" data-id="${r.id}">
+      <div class="t" style="display:flex;justify-content:space-between"><b style="font-size:19px">${esc(r.name)}</b><b style="color:var(--yellow);font:700 24px Oswald,sans-serif">${cents(r.total_cents)}</b></div>
+      ${payPills(r)}${chgBox(r)}
+      <div class="what muted" style="margin:6px 0 10px">${what(r)}<br>🗓 ${esc(r.day_text)}${r.time_text ? ", " + esc(r.time_text) : ""}</div>
+      <div class="big"><button class="btn ok" onclick="accept('${r.id}')">Yes, book it</button><a class="btn dark" href="sms:${digits(r.phone)}">💬 Text</a></div>
+      ${depBtn(r)}
+      <button class="btn dark full sm" style="margin-top:8px" onclick="decline('${r.id}')">Can't do it</button>
+    </div>`).join("") : '<div class="empty"><div style="font-size:48px">📥</div>No new requests. Website bookings show up here.</div>');
+  } else if (tab === "cust") {
+    const keep = document.activeElement && document.activeElement.id === "custSearch";
+    m.innerHTML = errBox + custView();
+    if (keep) { const i = $("#custSearch"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
+  } else if (tab === "msg") {
+    m.innerHTML = errBox + (openChat ? chatView() : chatList() + revList());
+    if (openChat && $("#bubbles") && $("#bubbles").lastElementChild) $("#bubbles").lastElementChild.scrollIntoView({ block: "end" });
+  } else {
+    const done = rows.filter(r => r.status === "done" && !left(r));
+    m.innerHTML = errBox + `<div class="card" style="text-align:center"><div class="muted">Paid so far</div><div style="font:700 44px Oswald,sans-serif;color:var(--yellow)" id="paidSum">${cents(done.reduce((t, r) => t + r.paid_cents, 0))}</div></div>` +
+      (done.length ? done.map(r => `<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <div><b>${esc(r.name)}</b><div class="small muted">${esc(r.car)} · ${esc(r.booked_time || r.day_text)}</div></div>
+        <div style="text-align:right"><b>${cents(r.paid_cents)}</b><br><span class="pill paid">${esc(r.paid_how)}</span></div></div>`).join("")
+        : '<div class="empty">Finished, paid jobs show up here.</div>');
+  }
+}
+
+async function load() {
+  if (!me) return;
+  const { data, error } = await supa.from("bookings").select("*").not("status", "in", "(declined,canceled)").order("created_at", { ascending: true }).limit(500);
+  if (error) loadErr = "Couldn't load bookings. Check the internet; it tries again by itself.";
+  else { rows = data; loadErr = ""; }
+  const c = await supa.from("chats").select("*").order("last_at", { ascending: false }).limit(200);
+  if (!c.error) chats = c.data;
+  const cu = await supa.rpc("owner_customers");
+  if (!cu.error && Array.isArray(cu.data)) custs = cu.data;
+  const rv = await supa.from("reviews").select("*").order("created_at", { ascending: false }).limit(60);
+  if (!rv.error) revs = rv.data;
+  const ms = await supa.from("chat_messages").select("*").order("id", { ascending: false }).limit(1000);
+  if (!ms.error) msgs = ms.data.reverse();
+  loaded = true;
+  // never redraw over a reply the owner is typing
+  if (tab === "msg" && openChat && $("#replyTxt") && $("#replyTxt").value.trim()) { header(); return; }
+  if (!$("#sheet").classList.contains("show")) draw();
+}
+async function setUser(u) {
+  me = null;
+  if (u) {
+    const { data } = await supa.rpc("is_owner");
+    if (data === true) me = u; else { loginMsg = "That account isn't the owner's."; await supa.auth.signOut(); }
+  }
+  draw(); if (me) load();
+}
+async function login(e) {
+  e.preventDefault(); loginMsg = "";
+  const b = $("#lg button"); b.disabled = true; b.textContent = "Logging in...";
+  authStore.setRemember($("#oRemember").checked);
+  const { data, error } = await supa.auth.signInWithPassword({ email: $("#oEmail").value.trim(), password: $("#oPass").value });
+  if (error) { loginMsg = /invalid/i.test(error.message) ? "That email or password is wrong." : "Couldn't log in. Try again."; draw(); return; }
+  setUser(data.user);
+}
+async function logout() { await supa.auth.signOut(); rows = []; loaded = false; setUser(null); }
+
+async function change(id, fields, msg) {
+  const { error } = await supa.from("bookings").update(fields).eq("id", id);
+  if (error) { toast("Didn't save. Check the internet and try again."); return false; }
+  if (msg) toast(msg);
+  await load(); return true;
+}
+
+function snap(id, k, input) {
+  const f = input.files[0]; if (!f) return;
+  const r = new FileReader(); r.onload = () => { shots[id + k] = r.result; draw(); toast(k === "b" ? "Before photo saved" : "After photo saved, it goes to the hub for posting"); }; r.readAsDataURL(f);
+}
+
+function finish(id) {
+  const r = byId(id);
+  sheet(`<h3 style="text-align:center">${esc(r.name)} · ${cents(left(r))} left</h3>
+    <div class="muted" style="text-align:center">${r.deposit_cents ? "Deposit " + cents(r.deposit_cents) + " already paid. " : ""}How are they paying?</div>
+    <button class="btn" id="payCard" onclick="cardLink('${id}')">💳 Card: send them the pay link</button>
+    <button class="btn" onclick="paid('${id}','Cash App')">💵 Cash App</button>
+    <button class="btn" onclick="paid('${id}','Cash')">💵 Cash</button>
+    ${r.status === "done" ? "" : `<button class="btn dark" onclick="notYet('${id}')">Done, not paid yet</button>`}
+    <button class="btn ghost" onclick="closeSheet()">Cancel</button>`);
+}
+async function cardLink(id) {
+  const r = byId(id);
+  const text = `Hi ${(r.name || "").split(" ")[0]}, this is In & Out Detailing. Your car is all done! Your balance is ${cents(left(r))}. Pay here: ${custLink(r)}`;
+  closeSheet();
+  if (r.status !== "done" && !(await change(id, { status: "done" }))) return;
+  sheet(`<h3 style="text-align:center">Send ${first(r)} the pay link</h3><div class="muted" style="text-align:center">Balance: ${cents(left(r))}</div>
+    ${sendButtons(r, "Your In & Out detail is done: pay " + cents(left(r)), text, ["textPay", "mailPay"])}
+    <button class="btn ghost" onclick="closeSheet()">Not now</button>`);
+}
+async function paid(id, how) {
+  closeSheet();
+  const { error } = await supa.rpc("owner_paid", { p_id: id, p_how: how });
+  if (error) { toast("Didn't save. Check the internet and try again."); return; }
+  toast("Paid with " + how + ". Their phone shows the thank-you page. Nice work!");
+  await load();
+}
+async function notYet(id) { closeSheet(); await change(id, { status: "done" }, "Marked done. Payment still owed."); }
+
+function accept(id) {
+  const r = byId(id);
+  sheet(`<h3 style="text-align:center">What time works?</h3><div class="muted" style="text-align:center">${esc(r.day_text)}${r.time_text ? ", " + esc(r.time_text) : ""}</div>
+    ${/^\d{1,2}:\d\d [AP]M$/.test(r.time_text || "") ? `<button class="btn ok" id="theirTime" onclick="booked('${id}','${esc(r.time_text)}')">${esc(r.time_text)} (the time they picked)</button><div class="small muted" style="text-align:center">Or a different time:</div>` : ""}
+    ${["9:00 AM", "12:00 PM", "3:00 PM"].filter(t => t !== r.time_text).map(t => `<button class="btn" onclick="booked('${id}','${t}')">${t}</button>`).join("")}
+    <button class="btn ghost" onclick="closeSheet()">Cancel</button>`);
+}
+async function booked(id, t) {
+  const r = byId(id);
+  const when = (r.day_text && r.day_text !== "Any day" ? r.day_text + " " : "") + t;
+  closeSheet();
+  if (!(await change(id, { status: "booked", booked_time: when }))) return;
+  go("today");
+  const text = `Hi ${(r.name || "").split(" ")[0]}, this is In & Out Detailing. You're booked for ${when}. See your booking${r.deposit_cents ? "" : " or pay a deposit to lock it in"}: ${custLink(r)}`;
+  sheet(`<h3 style="text-align:center">Booked for ${esc(when)}!</h3><div class="muted" style="text-align:center">Send ${first(r)} the confirmation?</div>
+    ${sendButtons(r, "Your In & Out detail is booked for " + when, text, ["textTime", "mailTime"])}
+    <button class="btn ghost" onclick="closeSheet()">Not now</button>`);
+}
+async function decline(id) { await change(id, { status: "declined" }, "Request removed"); }
+
+// ---- Customers tab: everyone who booked or made an account (DroGo 2026-11-03) ----
+const digitsOf = p => (p || "").replace(/\D/g, "");
+function custBookings(c) {
+  return rows.filter(r => c.account ? r.user_id === c.key : (!r.user_id && digitsOf(r.phone) === c.key.slice(2))).sort((a, b) => b.created_at.localeCompare(a.created_at));
+}
+function custView() {
+  const q = custQ.trim().toLowerCase();
+  const list = custs.filter(c => !q || [c.name, c.phone, c.email].some(v => (v || "").toLowerCase().includes(q)) || (q.replace(/\D/g, "") && digitsOf(c.phone).includes(q.replace(/\D/g, ""))));
+  const total = custs.reduce((t, c) => t + (c.spent || 0), 0);
+  return `<input id="custSearch" type="search" placeholder="Search name, phone or email" value="${esc(custQ)}" oninput="custQ=this.value;draw()">
+    <div class="small muted" style="margin:-4px 0 0">${custs.length} customer${custs.length === 1 ? "" : "s"} · ${custs.filter(c => c.account).length} with an account · ${cents(total)} paid all-time</div>`
+    + (list.length ? list.map(c => {
+      const open = custOpen === c.key, hist = open ? custBookings(c) : [];
+      return `<div class="card cust ${open ? "open" : ""}" data-cust="${esc(c.key)}" onclick="if(!event.target.closest('a,button'))toggleCust('${esc(c.key)}')">
+        <div class="top2"><b style="font-size:18px">${esc(c.name || "No name")}</b><b style="color:var(--yellow)">${cents(c.spent || 0)}</b></div>
+        <div class="meta">${c.visits} visit${c.visits === 1 ? "" : "s"}${c.last ? " · last " + new Date(c.last).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : ""}
+          ${c.account ? ' · <span class="pill">Account</span>' : ' · <span class="pill">Guest</span>'}${c.deals ? ' <span class="pill go">Deals OK</span>' : ""}</div>
+        <div class="more">
+          <div class="small muted">${c.phone ? "📞 " + esc(c.phone) : ""}${c.email ? "<br>📧 " + esc(c.email) : ""}<br>Customer since ${new Date(c.since).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</div>
+          <div class="big" style="margin-top:10px">${c.phone ? `<a class="btn dark" href="tel:${digitsOf(c.phone)}">📞 Call</a><a class="btn dark" href="sms:${digitsOf(c.phone)}">💬 Text</a>` : ""}</div>
+          ${c.email ? `<a class="btn dark full" style="margin-top:8px" href="mailto:${esc(c.email)}">📧 Email</a>` : ""}
+          <div class="hist" style="margin-top:10px">${hist.length ? hist.map(r => `<div><span>${esc(r.booked_time || r.day_text)} · ${esc(r.status)}</span><b>${cents(r.total_cents)}</b></div>`).join("") : '<div class="muted">No bookings yet</div>'}</div>
+        </div></div>`;
+    }).join("") : `<div class="empty"><div style="font-size:48px">👥</div>${custs.length ? "Nobody matches that search." : "No customers yet. Everyone who books or makes an account shows up here."}</div>`);
+}
+function toggleCust(k) { custOpen = custOpen === k ? null : k; draw(); }
+
+// ---- Messages tab ----
+const ago = iso => { const m = Math.round((Date.now() - new Date(iso)) / 60000); return m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " hr ago" : new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" }); };
+const chatMsgs = id => msgs.filter(x => x.chat_id === id);
+// website reviews: the owner can hide a fake or rude one (DroGo 2026-11-03)
+function revList() {
+  if (!revs.length) return "";
+  return `<h3 style="margin:18px 0 4px">⭐ Website reviews</h3>` + revs.map(r => `<div class="card" data-rev="${r.id}" style="${r.hidden ? "opacity:.55" : ""}">
+    <div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(r.name)}</b><span style="color:var(--yellow)">${"★".repeat(r.stars)}${"☆".repeat(5 - r.stars)}</span></div>
+    <div class="muted" style="margin:6px 0 10px;white-space:pre-wrap">${esc(r.body)}</div>
+    <button class="btn ${r.hidden ? "" : "dark"} sm" onclick="hideRev(${r.id}, ${!r.hidden})">${r.hidden ? "Show it again" : "Hide this review"}</button>${r.hidden ? ' <span class="pill">Hidden</span>' : ""}</div>`).join("");
+}
+async function hideRev(id, hide) {
+  const { error } = await supa.rpc("owner_hide_review", { p_id: id, p_hide: hide });
+  if (error) { toast("Didn't save. Check the internet and try again."); return; }
+  toast(hide ? "Hidden. It's off the website now." : "It's back on the website."); await load(); draw();
+}
+function chatList() {
+  if (!chats.length) return '<div class="empty"><div style="font-size:48px">💬</div>No messages yet. When a customer writes from the website, it shows up here and your phone buzzes.</div>';
+  return chats.map(c => { const l = chatMsgs(c.id).slice(-1)[0];
+    return `<div class="card chat-row ${c.owner_unread ? "unread" : ""}" data-chat="${c.id}" onclick="showChat('${c.id}')">
+      <div><b style="font-size:18px">${esc(c.name)}</b>${c.owner_unread ? ' <span class="pill go">New</span>' : ""}<div class="prev">${l ? (l.from_owner ? "You: " : "") + esc(l.body) : ""}</div></div>
+      <div class="small muted">${ago(c.last_at)}</div></div>`; }).join("");
+}
+function chatView() {
+  const c = chats.find(x => x.id === openChat);
+  if (!c) { openChat = null; return chatList(); }
+  const bk = c.booking_token && rows.find(r => r.token === c.booking_token);
+  const fn = esc(c.name.split(" ")[0]);
+  return `<button class="btn dark sm" onclick="openChat=null;draw()">‹ All messages</button>
+    <div class="card"><b style="font-size:19px">${esc(c.name)}</b>${c.email ? '<div class="small muted">📧 ' + esc(c.email) + "</div>" : ""}
+      ${bk ? `<div class="small muted">🗓 Booking: ${esc(bk.booked_time || (bk.day_text + ", " + bk.time_text))} · ${cents(bk.total_cents)}</div>` : ""}</div>
+    <div class="bubbles" id="bubbles">${chatMsgs(c.id).map(x => `<div class="bub ${x.from_owner ? "me" : ""}">${esc(x.body)}<small>${x.from_owner ? "You" : fn} · ${ago(x.created_at)}</small></div>`).join("")}</div>
+    <form class="replybox" onsubmit="sendReply(event)"><textarea id="replyTxt" placeholder="Type your answer to ${fn}..." maxlength="1000"></textarea>
+      <button class="btn full" id="replyBtn" type="submit">Send</button></form>`;
+}
+async function showChat(id) {
+  openChat = id; draw();
+  const c = chats.find(x => x.id === id);
+  if (c && c.owner_unread) { await supa.rpc("owner_read", { p_chat: id }); c.owner_unread = 0; header(); }
+}
+async function sendReply(e) {
+  e.preventDefault();
+  const t = $("#replyTxt").value.trim(); if (!t) return;
+  const b = $("#replyBtn"); b.disabled = true; b.textContent = "Sending...";
+  const { error } = await supa.rpc("owner_reply", { p_chat: openChat, p_body: t });
+  if (error) { b.disabled = false; b.textContent = "Send"; toast("Didn't send. Check the internet and try again."); return; }
+  $("#replyTxt").value = ""; toast("Sent. They see it on the website.");
+  await load(); draw();
+}
+
+document.querySelectorAll(".nav button").forEach(b => b.onclick = () => go(b.dataset.tab));
+
+// ---- Pop-up alerts + jobs calendar (DroGo 2026-11-08) ----
+// iPhone: alerts only work from the Home Screen icon (iOS 16.4+). Every alert the server makes (bookings, payments, messages,
+// change/cancel requests, reviews, new accounts) goes to each phone saved in push_subs (edge function "push").
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+let swReg = null, alertsOk = false;
+const b64ToBytes = s => { const b = atob((s + "===".slice((s.length + 3) % 4)).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(b, c => c.charCodeAt(0)); };
+async function checkAlerts() {
+  let ok = false;
+  try { ok = !!(swReg && "Notification" in window && Notification.permission === "granted" && await swReg.pushManager.getSubscription()); } catch (e) {}
+  const changed = ok !== alertsOk; alertsOk = ok;
+  $("#bellBtn").classList.toggle("off", !ok);
+  if (changed && me && loaded && tab === "today") draw();
+}
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("owner-sw.js").then(r => { swReg = r; checkAlerts(); }).catch(() => {});
+function alertSheet() {
+  sheet(`<h3 style="text-align:center">🔔 Alerts + calendar</h3>
+    <div class="card" id="alertState" style="text-align:center">${alertsOk ? "✅ Alerts are ON for this phone." : "Alerts are OFF on this phone."}</div>
+    ${alertsOk ? `<button class="btn" id="testBtn" onclick="testAlert()">Send a test alert</button>` : `<button class="btn" id="alertsOnBtn" onclick="alertsOn()">Turn on alerts</button>`}
+    <button class="btn dark" id="calBtn" onclick="addCal()">📅 Add jobs to my calendar</button>
+    <div class="small muted">Tap <b>Subscribe</b> when the iPhone asks. Booked jobs and new requests (❓) show in the Calendar app and update every 15 minutes or so.</div>
+    <button class="btn ghost" onclick="closeSheet()">Close</button>`);
+}
+function homeScreenSheet() {
+  sheet(`<h3 style="text-align:center">First, put the app on your Home Screen</h3>
+    <ol class="steps"><li>Tap the <b>Share</b> button (square with the arrow ⬆) at the bottom of Safari</li><li>Tap <b>Add to Home Screen</b>, then <b>Add</b></li>
+    <li>Open <b>In & Out</b> from the new icon on your Home Screen and log in</li><li>Tap the 🔔 at the top, then <b>Turn on alerts</b></li></ol>
+    <div class="small muted">iPhones only allow pop-ups for apps opened from the Home Screen icon (iPhone update iOS 16.4 or newer).</div>
+    <button class="btn ghost" onclick="closeSheet()">Got it</button>`);
+}
+async function alertsOn() {
+  if (isIOS && !standalone) { homeScreenSheet(); return; }
+  if (!("Notification" in window) || !("PushManager" in window) || !("serviceWorker" in navigator)) { toast("This browser can't do pop-ups. On iPhone, use the Home Screen icon."); return; }
+  const perm = await Notification.requestPermission();   // must be the first wait after the tap (iPhone rule)
+  if (perm !== "granted") {
+    sheet(`<h3 style="text-align:center">Alerts are blocked</h3><div class="muted">Go to iPhone <b>Settings › Notifications › In & Out</b> and turn on <b>Allow Notifications</b>. Then come back and tap 🔔 › Turn on alerts.</div><button class="btn ghost" onclick="closeSheet()">OK</button>`);
+    return;
+  }
+  const b = $("#alertsOnBtn"); if (b) { b.disabled = true; b.textContent = "Turning on..."; }
+  try {
+    const reg = swReg || await navigator.serviceWorker.register("owner-sw.js"); await navigator.serviceWorker.ready; swReg = reg;
+    const { key } = await (await fetch(SUPA.url + "/functions/v1/push", { method: "POST", headers: { "Content-Type": "application/json" }, body: '{"key":true}' })).json();
+    const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(key) });
+    const j = sub.toJSON();
+    const { error } = await supa.rpc("owner_push_save", { p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth, p_ua: navigator.userAgent.slice(0, 200) });
+    if (error) throw error;
+    await checkAlerts(); closeSheet(); toast("Alerts are on! Sending a test now...");
+    setTimeout(testAlert, 1200);
+  } catch (e) { console.error(e); if (b) { b.disabled = false; b.textContent = "Turn on alerts"; } toast("Couldn't turn on alerts. Check the internet and try again."); }
+}
+async function testAlert() {
+  const { error } = await supa.rpc("owner_push_test");
+  toast(error ? "Couldn't send the test. Try again." : "Test sent. It should pop up in a few seconds.");
+}
+async function addCal() {
+  const { data, error } = await supa.rpc("owner_cal_link");
+  if (error || !data) { toast("Couldn't get the calendar link. Try again."); return; }
+  location.href = data;   // webcal:// link: the iPhone asks "Subscribe to In & Out Jobs?"
+}
+function appBadge() {   // number on the Home Screen icon = new requests + change requests + unread messages
+  const n = rows.filter(r => r.status === "requested" || (r.change_req && !r.change_req.answer)).length + chats.filter(c => c.owner_unread > 0).length;
+  try { if (navigator.setAppBadge) n ? navigator.setAppBadge(n) : navigator.clearAppBadge(); } catch (e) {}
+}
+setInterval(load, 15000);                                                     // new bookings + payments show up by themselves
+document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+if (supa) supa.auth.getSession().then(({ data }) => setUser(data.session && data.session.user));
+else $("#main").innerHTML = '<div class="empty">Can\'t reach the booking system. Check the internet and reopen the app.</div>';
+</script>
+</body>
+</html>
