@@ -264,7 +264,7 @@ function jobCard(r, i) {
 function loginView() {
   return `<form class="card" id="lg" onsubmit="login(event)" style="display:grid;gap:10px">
     <h3>Owner log in</h3>
-    <input id="oEmail" type="email" autocomplete="username" placeholder="Business email" required>
+    <input id="oEmail" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Username" required>
     <input id="oPass" type="password" autocomplete="current-password" placeholder="Password" required>
     <label style="display:flex;gap:10px;align-items:center;font-size:16px"><input type="checkbox" id="oRemember" ${authStore.remember() ? "checked" : ""} style="width:22px;height:22px;min-height:22px"> Remember me on this phone</label>
     <button class="btn full" type="submit">Log in</button>
@@ -371,8 +371,17 @@ async function login(e) {
   e.preventDefault(); loginMsg = "";
   const b = $("#lg button"); b.disabled = true; b.textContent = "Logging in...";
   authStore.setRemember($("#oRemember").checked);
-  const { data, error } = await supa.auth.signInWithPassword({ email: $("#oEmail").value.trim(), password: $("#oPass").value });
-  if (error) { loginMsg = /invalid/i.test(error.message) ? "That email or password is wrong." : "Couldn't log in. Try again."; draw(); return; }
+  const who = $("#oEmail").value.trim(), pw = $("#oPass").value;
+  let res;
+  if (who.includes("@")) res = await supa.auth.signInWithPassword({ email: who, password: pw });   // the email still works as a backup
+  else {   // username: the server swaps it for the owner's email, so the email never shows in the page (DroGo 2026-11-08)
+    const r = await fetch(SUPA.url + "/functions/v1/owner-login", { method: "POST", headers: { "Content-Type": "application/json", apikey: SUPA.key }, body: JSON.stringify({ username: who, password: pw }) }).catch(() => null);
+    const j = r ? await r.json().catch(() => ({})) : {};
+    res = j.access_token ? await supa.auth.setSession({ access_token: j.access_token, refresh_token: j.refresh_token })
+      : { error: { message: !r ? "net" : j.error === "wrong" ? "invalid" : j.error === "slow" ? "slow" : "error" } };
+  }
+  const { data, error } = res;
+  if (error || !data?.user) { loginMsg = /invalid/i.test(error?.message || "") ? "That username or password is wrong." : /slow/.test(error?.message || "") ? "Too many tries. Wait a few minutes." : "Couldn't log in. Check the internet and try again."; draw(); return; }
   setUser(data.user);
 }
 async function logout() { await supa.auth.signOut(); rows = []; loaded = false; setUser(null); }
