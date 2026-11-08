@@ -490,10 +490,10 @@ async function hideRev(id, hide) {
   toast(hide ? "Hidden. It's off the website now." : "It's back on the website."); await load(); draw();
 }
 function chatList() {
-  if (!chats.length) return '<div class="empty"><div style="font-size:48px">💬</div>No messages yet. When a customer writes from the website, it shows up here and your phone buzzes.</div>';
+  if (!chats.length) return '<div class="empty"><div style="font-size:48px">💬</div>No messages yet. When a customer writes from the website or emails hello@inandoutnc.com, it shows up here and your phone buzzes.</div>';
   return chats.map(c => { const l = chatMsgs(c.id).slice(-1)[0];
     return `<div class="card chat-row ${c.owner_unread ? "unread" : ""}" data-chat="${c.id}" onclick="showChat('${c.id}')">
-      <div><b style="font-size:18px">${esc(c.name)}</b>${c.owner_unread ? ' <span class="pill go">New</span>' : ""}<div class="prev">${l ? (l.from_owner ? "You: " : "") + esc(l.body) : ""}</div></div>
+      <div><b style="font-size:18px">${esc(c.name)}</b>${c.source === "email" ? ' <span class="pill">📧 Email</span>' : ""}${c.owner_unread ? ' <span class="pill go">New</span>' : ""}<div class="prev">${l ? (l.from_owner ? "You: " : "") + esc(l.body) : ""}</div></div>
       <div class="small muted">${ago(c.last_at)}</div></div>`; }).join("");
 }
 function chatView() {
@@ -502,10 +502,10 @@ function chatView() {
   const bk = c.booking_token && rows.find(r => r.token === c.booking_token);
   const fn = esc(c.name.split(" ")[0]);
   return `<button class="btn dark sm" onclick="openChat=null;draw()">‹ All messages</button>
-    <div class="card"><b style="font-size:19px">${esc(c.name)}</b>${c.email ? '<div class="small muted">📧 ' + esc(c.email) + "</div>" : ""}
+    <div class="card"><b style="font-size:19px">${esc(c.name)}</b>${c.email ? '<div class="small muted">📧 ' + esc(c.email) + "</div>" : ""}${c.source === "email" && c.subject ? '<div class="small muted">Subject: ' + esc(c.subject) + "</div>" : ""}
       ${bk ? `<div class="small muted">🗓 Booking: ${esc(bk.booked_time || (bk.day_text + ", " + bk.time_text))} · ${cents(bk.total_cents)}</div>` : ""}</div>
-    <div class="bubbles" id="bubbles">${chatMsgs(c.id).map(x => `<div class="bub ${x.from_owner ? "me" : ""}">${esc(x.body)}<small>${x.from_owner ? "You" : fn} · ${ago(x.created_at)}</small></div>`).join("")}</div>
-    <form class="replybox" onsubmit="sendReply(event)"><textarea id="replyTxt" placeholder="Type your answer to ${fn}..." maxlength="1000"></textarea>
+    <div class="bubbles" id="bubbles">${chatMsgs(c.id).map(x => `<div class="bub ${x.from_owner ? "me" : ""}">${esc(x.body)}<small>${x.from_owner ? "You" : fn} · ${ago(x.created_at)}${x.email_status === "failed" ? ' · <b style="color:#a40000">⚠️ Email did not send. Reply from Gmail.</b>' : ""}</small></div>`).join("")}</div>
+    <form class="replybox" onsubmit="sendReply(event)"><textarea id="replyTxt" placeholder="${c.source === "email" ? "Type your email back to " + fn + "..." : "Type your answer to " + fn + "..."}" maxlength="1000"></textarea>
       <button class="btn full" id="replyBtn" type="submit">Send</button></form>`;
 }
 async function showChat(id) {
@@ -519,7 +519,7 @@ async function sendReply(e) {
   const b = $("#replyBtn"); b.disabled = true; b.textContent = "Sending...";
   const { error } = await supa.rpc("owner_reply", { p_chat: openChat, p_body: t });
   if (error) { b.disabled = false; b.textContent = "Send"; toast("Didn't send. Check the internet and try again."); return; }
-  $("#replyTxt").value = ""; toast("Sent. They see it on the website.");
+  $("#replyTxt").value = ""; toast(chats.find(x => x.id === openChat)?.source === "email" ? "Sent. It's on its way to their email." : "Sent. They see it on the website.");
   await load(); draw();
 }
 

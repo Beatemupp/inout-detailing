@@ -1,7 +1,7 @@
 // In & Out Detailing: shared data for the layout (Sprint 1). Everything here is SAMPLE data.
 const BIZ = {
   name: "In & Out Detailing",
-  email: "hello@inandoutnc.com", // forwards to inoutdetailing@icloud.com via Cloudflare Email Routing; no phone number on the website (DroGo 2026-11-03)
+  email: "hello@inandoutnc.com", // iCloud+ Custom Email Domain on DroGo's Apple ID since 2026-11-03 (Cloudflare forwarding retired); no phone number on the website (DroGo 2026-11-03)
   area: ["Knightdale", "Wake Forest", "Youngsville", "Raleigh", "Cary", "Apex", "Brier Creek", "Creedmoor"],
   services: ["Washing", "Waxing", "Buffing", "Vacuuming", "Pressure Washing", "Shampooing"],
   site: "https://inoutdetailing.example", // placeholder until Sprint 3 picks a real address
