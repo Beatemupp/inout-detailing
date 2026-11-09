@@ -421,7 +421,7 @@ async function login(e) {
   if (error || !data?.user) { loginMsg = /invalid/i.test(error?.message || "") ? "That username or password is wrong." : /slow/.test(error?.message || "") ? "Too many tries. Wait a few minutes." : "Couldn't log in. Check the internet and try again."; draw(); return; }
   setUser(data.user);
 }
-async function logout() { await supa.auth.signOut(); rows = []; loaded = false; setUser(null); }
+async function logout() { if (live) { supa.removeChannel(live); live = null; } await supa.auth.signOut(); rows = []; loaded = false; setUser(null); }
 
 async function change(id, fields, msg) {
   const { error } = await supa.from("bookings").update(fields).eq("id", id);
@@ -625,7 +625,17 @@ function appBadge() {   // number on the Home Screen icon = new requests + chang
   const n = rows.filter(r => r.status === "requested" || (r.change_req && !r.change_req.answer)).length + chats.filter(c => c.owner_unread > 0).length;
   try { if (navigator.setAppBadge) n ? navigator.setAppBadge(n) : navigator.clearAppBadge(); } catch (e) {}
 }
-setInterval(load, 15000);                                                     // new bookings + payments show up by themselves
+setInterval(load, 15000);                                                     // backup: new bookings + payments show up by themselves
+// live updates (DroGo 2026-11-08): the moment a booking, payment, message, email, review or account changes, the app reloads (Supabase Realtime)
+let liveT = null, live = null;
+function goLive() {
+  if (!supa || !me || live) return;
+  live = supa.channel("owner-live");
+  for (const tb of ["bookings", "chats", "chat_messages", "reviews", "profiles"])
+    live.on("postgres_changes", { event: "*", schema: "public", table: tb }, () => { clearTimeout(liveT); liveT = setTimeout(load, 400); });
+  live.subscribe();
+}
+setInterval(() => { if (me) goLive(); }, 2000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
 if (supa) supa.auth.getSession().then(({ data }) => setUser(data.session && data.session.user));
 else $("#main").innerHTML = '<div class="empty">Can\'t reach the booking system. Check the internet and reopen the app.</div>';
