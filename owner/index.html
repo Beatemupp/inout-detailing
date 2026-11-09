@@ -122,6 +122,10 @@
   .bubbles { display: grid; gap: 8px; }
   .bub { max-width: 82%; padding: 10px 13px; border-radius: 16px; background: var(--panel2); white-space: pre-wrap; word-wrap: break-word; }
   .bub.me { justify-self: end; background: var(--yellow); color: #111; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 12px; }
+  .chip { border: 1px solid #2a2a2e; background: var(--panel2); color: #f2f2f2; border-radius: 999px; padding: 7px 12px; font: 600 13px Montserrat, sans-serif; cursor: pointer; }
+  .chip b { color: var(--yellow); margin-left: 4px; }
+  .chip.on { border-color: var(--yellow); background: #2a2410; color: var(--yellow); }
   .bub small { display: block; font-size: 11px; opacity: .65; margin-top: 4px; }
   .replybox { display: grid; gap: 8px; }
   .replybox textarea { min-height: 70px; font-size: 17px; }
@@ -136,8 +140,8 @@
     <div class="tools"><button class="bell off" id="bellBtn" onclick="alertSheet()" aria-label="Alerts and calendar">🔔<span class="dot"></span></button><a href="#" id="outBtn" onclick="logout();return false">Log out</a></div>
   </div>
   <nav class="nav" id="nav">
-    <button data-tab="today" class="on">Today</button>
-    <button data-tab="req">Requests<span class="badge" id="reqN" style="display:none"></span></button>
+    <button data-tab="today" class="on">Today<span class="badge" id="reqN" style="display:none"></span></button>
+    <button data-tab="rec">Records</button>
     <button data-tab="done">Done</button>
     <button data-tab="msg">Messages<span class="badge" id="msgN" style="display:none"></span></button>
     <button data-tab="cust">Customers</button>
@@ -274,7 +278,7 @@ function loginView() {
 }
 
 // page title like the website: big outline word + yellow/red bar; sweeps in when the tab opens, stays still on the 15 s refresh
-const TITLES = { today: "Today's Jobs", req: "Requests", done: "Done + Paid", msg: "Messages", cust: "Customers" };
+const TITLES = { today: "Today's Jobs", rec: "Records", done: "Done + Paid", msg: "Messages", cust: "Customers" };
 let animNext = true;
 const pageTitle = () => `<div class="ptitle"><h2 class="ft out">${TITLES[tab]}</h2><div class="bar2"></div></div>`;
 const alertBar = () => alertsOk ? "" : `<div class="alertbar" id="alertBar" onclick="alertSheet()">🔔 Get a pop-up for every booking, payment and message<span class="go">Turn on ›</span></div>`;
@@ -284,7 +288,7 @@ function draw() {
   animNext = false;
 }
 // tabs spin like a cube (DroGo 2026-11-08): the old page turns away, the new one turns in from the side you're going to
-const TABS = ["today", "req", "done", "msg", "cust"];
+const TABS = ["today", "rec", "done", "msg", "cust"];
 function go(t) {
   const same = t === tab;
   if (same && !(t === "msg" && openChat)) { scrollTo(0, 0); return; }
@@ -299,7 +303,46 @@ function go(t) {
     main.classList.remove("cube-in-l", "cube-in-r"); void main.offsetWidth; main.classList.add("cube-in-" + dir);
   }
   tab = t; if (tab !== "msg") openChat = null; animNext = true; draw();
+  if (t === "rec") loadRec().then(() => { if (tab === "rec") draw(); });
   if (old) setTimeout(() => { old.remove(); stage.classList.remove("spinning"); main.classList.remove("cube-in-l", "cube-in-r"); }, 700);
+}
+// new booking requests + move/cancel asks: top of Today since 2026-11-08 (the Requests tab became Records)
+// Records tab (DroGo 2026-11-08): everything the weekly backup email saves, live: bookings (all, even declined/canceled),
+// customers, website accounts, reviews, chats + emails. Data from rpc owner_records (owner only).
+let rec = null, recQ = "", recSec = "bookings";
+async function loadRec() { const r = await supa.rpc("owner_records"); if (!r.error && r.data) rec = r.data; }
+const fmtD = d => d ? new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "";
+function recView() {
+  if (!rec) return '<div class="empty">Loading records...</div>';
+  const b = rec.backup;
+  const SECS = [["bookings", "Bookings", rec.bookings], ["customers", "Customers", rec.customers], ["accounts", "Accounts", rec.accounts], ["reviews", "Reviews", rec.reviews], ["chats", "Messages", rec.chats]];
+  const q = recQ.trim().toLowerCase(), hit = o => !q || JSON.stringify(o).toLowerCase().includes(q);
+  const sec = SECS.find(s => s[0] === recSec) || SECS[0];
+  const row = {
+    bookings: r => `<div class="card"><div class="top2"><b>${esc(r.name)}</b><b style="color:var(--yellow)">${cents(r.total_cents)}</b></div><div class="small muted">${esc(r.when)} · <span class="pill">${esc(r.status)}</span>${r.paid_cents ? " · paid " + cents(r.paid_cents) + (r.paid_how ? " (" + esc(r.paid_how) + ")" : "") : ""}<br>${esc(r.car || "")}${r.phone ? " · " + esc(r.phone) : ""}</div></div>`,
+    customers: c => `<div class="card"><b>${esc(c.name || "No name")}</b><div class="small muted">${c.phone ? "📞 " + esc(c.phone) + " " : ""}${c.email ? "📧 " + esc(c.email) : ""}<br>Account since ${fmtD(c.created_at)}${c.deals ? ' · <span class="pill go">Deals OK</span>' : ""}</div></div>`,
+    accounts: a => `<div class="card"><b>${esc(a.email)}</b><div class="small muted">Made ${fmtD(a.created_at)} · last login ${a.last_login ? fmtD(a.last_login) : "never"}${a.confirmed ? "" : " · email not confirmed yet"}</div></div>`,
+    reviews: r => `<div class="card"><b style="color:var(--yellow)">${"★".repeat(r.stars)}</b> <b>${esc(r.name)}</b>${r.hidden ? ' <span class="pill">Hidden</span>' : ""}<div class="small muted">${esc(r.body)}<br>${fmtD(r.created_at)}</div></div>`,
+    chats: c => `<div class="card"><b>${esc(c.name)}</b> <span class="pill">${c.source === "email" ? "📧 Email" : "💬 Website"}</span><div class="small muted">${c.count} message${c.count === 1 ? "" : "s"} · last ${fmtD(c.last_at)}${c.subject ? "<br>Subject: " + esc(c.subject) : ""}${c.last ? "<br>" + esc(c.last) : ""}</div></div>`,
+  };
+  const list = sec[2].filter(hit);
+  return `<div class="card small">${b ? (b.ok ? "✅" : "⚠️") + " Last weekly backup: <b>" + fmtD(b.at) + "</b>" + (b.ok ? " · emailed to " + esc(b.to) : " · it didn't send") : "No weekly backup sent yet. The first one goes out Monday morning."}<br><span class="muted">This page shows everything the backup saves, live.</span></div>
+    <input id="recSearch" type="search" placeholder="Search everything" value="${esc(recQ)}" oninput="recQ=this.value;draw()">
+    <div class="chips">${SECS.map(([k, l, a]) => `<button class="chip ${sec[0] === k ? "on" : ""}" data-sec="${k}" onclick="recSec='${k}';draw()">${l} <b>${a.filter(hit).length}</b></button>`).join("")}</div>`
+    + (list.length ? list.map(row[sec[0]]).join("") : `<div class="empty">Nothing here${q ? " for that search." : " yet."}</div>`);
+}
+function reqCards() {
+    const rs = rows.filter(r => r.status === "requested");
+    const moves = rows.filter(r => r.status === "booked" && r.change_req && !r.change_req.answer);   // booked jobs the customer wants to move / cancel
+    return moves.map(r => `<div class="card req" data-id="${r.id}"><b style="font-size:19px">${esc(r.name)}</b> <span class="pill">Booked</span>${chgBox(r)}</div>`).join("")
+      + (rs.length || moves.length ? rs.map(r => `<div class="card req" data-id="${r.id}">
+      <div class="t" style="display:flex;justify-content:space-between"><b style="font-size:19px">${esc(r.name)}</b><b style="color:var(--yellow);font:700 24px Oswald,sans-serif">${cents(r.total_cents)}</b></div>
+      ${payPills(r)}${chgBox(r)}
+      <div class="what muted" style="margin:6px 0 10px">${what(r)}<br>🗓 ${esc(r.day_text)}${r.time_text ? ", " + esc(r.time_text) : ""}</div>
+      <div class="big"><button class="btn ok" onclick="accept('${r.id}')">Yes, book it</button><a class="btn dark" href="sms:${digits(r.phone)}">💬 Text</a></div>
+      ${depBtn(r)}
+      <button class="btn dark full sm" style="margin-top:8px" onclick="decline('${r.id}')">Can't do it</button>
+    </div>`).join("") : "");
 }
 function drawPage() {
   document.body.classList.toggle("out", !me);
@@ -310,20 +353,13 @@ function drawPage() {
   if (!loaded) { m.innerHTML = '<div class="empty">Loading bookings...</div>'; return; }
   const errBox = pageTitle() + (tab === "today" ? alertBar() : "") + (loadErr ? `<div class="card" style="color:#ff8a8a">${esc(loadErr)}</div>` : "");
   if (tab === "today") {
-    const list = jobsList();
-    m.innerHTML = errBox + (list.length ? list.map(jobCard).join("") : '<div class="empty"><div style="font-size:48px">🏁</div>No booked jobs. New website bookings show up under Requests.</div>');
-  } else if (tab === "req") {
-    const rs = rows.filter(r => r.status === "requested");
-    const moves = rows.filter(r => r.status === "booked" && r.change_req && !r.change_req.answer);   // booked jobs the customer wants to move / cancel
-    m.innerHTML = errBox + moves.map(r => `<div class="card req" data-id="${r.id}"><b style="font-size:19px">${esc(r.name)}</b> <span class="pill">Booked</span>${chgBox(r)}</div>`).join("")
-      + (rs.length || moves.length ? rs.map(r => `<div class="card req" data-id="${r.id}">
-      <div class="t" style="display:flex;justify-content:space-between"><b style="font-size:19px">${esc(r.name)}</b><b style="color:var(--yellow);font:700 24px Oswald,sans-serif">${cents(r.total_cents)}</b></div>
-      ${payPills(r)}${chgBox(r)}
-      <div class="what muted" style="margin:6px 0 10px">${what(r)}<br>🗓 ${esc(r.day_text)}${r.time_text ? ", " + esc(r.time_text) : ""}</div>
-      <div class="big"><button class="btn ok" onclick="accept('${r.id}')">Yes, book it</button><a class="btn dark" href="sms:${digits(r.phone)}">💬 Text</a></div>
-      ${depBtn(r)}
-      <button class="btn dark full sm" style="margin-top:8px" onclick="decline('${r.id}')">Can't do it</button>
-    </div>`).join("") : '<div class="empty"><div style="font-size:48px">📥</div>No new requests. Website bookings show up here.</div>');
+    const list = jobsList(), rq = reqCards();
+    m.innerHTML = errBox + (rq ? `<h3 style="margin:4px 0 8px">📥 New requests</h3>${rq}<h3 style="margin:18px 0 8px">🚗 Booked jobs</h3>` : "")
+      + (list.length ? list.map(jobCard).join("") : '<div class="empty"><div style="font-size:48px">🏁</div>No booked jobs. New website bookings show up at the top of this page.</div>');
+  } else if (tab === "rec") {
+    const keep = document.activeElement && document.activeElement.id === "recSearch";
+    m.innerHTML = errBox + recView();
+    if (keep) { const s = $("#recSearch"); s.focus(); s.setSelectionRange(s.value.length, s.value.length); }
   } else if (tab === "cust") {
     const keep = document.activeElement && document.activeElement.id === "custSearch";
     m.innerHTML = errBox + custView();
@@ -354,6 +390,7 @@ async function load() {
   if (!rv.error) revs = rv.data;
   const ms = await supa.from("chat_messages").select("*").order("id", { ascending: false }).limit(1000);
   if (!ms.error) msgs = ms.data.reverse();
+  if (tab === "rec" || !rec) await loadRec();
   loaded = true;
   // never redraw over a reply the owner is typing
   if (tab === "msg" && openChat && $("#replyTxt") && $("#replyTxt").value.trim()) { header(); return; }
